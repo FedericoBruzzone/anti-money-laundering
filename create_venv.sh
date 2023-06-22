@@ -17,6 +17,7 @@ source "$1/bin/activate"
 echo "Installing packages..."
 pip install jedi
 pip install kaggle
+pip install matplotlib
 pip install numpy 
 pip install pandas 
 pip install pyspark
