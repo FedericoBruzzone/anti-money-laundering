@@ -9,3 +9,13 @@ The project is based on the analysis of the «IBM Transactions for Anti Money La
 **How to deactivate the current virtual environment**
 
 1. `deactivate`
+
+
+**Kaggle instructions**
+If you prefer to use Kaggle-style configuration, add `kaggle.json` to `.kaggle` folder in the root directory.
+```json
+{
+    "username":"",
+    "key":""
+}
+```

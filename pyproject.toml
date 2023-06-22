@@ -1,0 +1,28 @@
+[project]
+name = "anti_money_laundering"
+description = "Analysis of the \"IBM Transactions for Anti Money Laundering\""
+version = "0.1"
+authors=[
+    {name = "Federico Bruzzone", email = "federico.bruzzone@studenti.unimi.it"},
+    {name = "Ivan Mazzon", email = "ivan.mazzon@studenti.unimi.it"}
+]
+
+readme = "README.md"
+
+license = {file = "LICENSE"}
+
+requires-python = ">=3.9"
+
+dependencies = [
+    "load_dotenv",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "ipykernel",
+    "pyspark",
+    "kaggle",
+    "jedi"
+]
+
+[tool.setuptools]
+py-modules = []

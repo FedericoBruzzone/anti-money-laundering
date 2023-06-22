@@ -14,14 +14,15 @@ fi
 source "$1/bin/activate"
 
 
-echo "Installing packages..."
+'''echo "Installing packages..."
 pip install jedi
 pip install kaggle
 pip install matplotlib
 pip install numpy 
 pip install pandas 
 pip install pyspark
-echo "Packages installed successfully!"
+echo "Packages installed successfully!"'''
 
+pip install -e .
 
 pip -V
