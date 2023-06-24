@@ -1,5 +1,5 @@
 [project]
-name = "anti_money_laundering"
+name = "anti-money-laundering"
 description = "Analysis of the \"IBM Transactions for Anti Money Laundering\""
 version = "0.1"
 authors=[
