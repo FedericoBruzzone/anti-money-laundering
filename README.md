@@ -7,7 +7,7 @@ The project is based on the analysis of the «IBM Transactions for Anti Money La
 **Kaggle instructions**
 
 1. Create `.env` file using the following template:
-```json
+```env
 KAGGLE_USER=
 KAGGLE_KEY=
 KAGGLE_DATASET_LINK=ealtman2019/ibm-transactions-for-anti-money-laundering-aml
