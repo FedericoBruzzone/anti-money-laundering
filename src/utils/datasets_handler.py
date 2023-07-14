@@ -1,6 +1,6 @@
 import pandas as pd
 
-def get_train_and_test(dataset_name = "LI-Small_Trans.csv", verbose = 0):
+def get_train_and_test(dataset_name = "LI-Small_Trans.csv", verbose = False):
     df = pd.read_csv(f"datasets/{dataset_name}", sep=",")
     df_train = df.sample(frac=0.8, random_state=1)
     df_test  = df.drop(df_train.index)
@@ -23,4 +23,10 @@ def get_X_and_Y(df, verbose = 0):
         print(Y_df.head())
 
     return (X_df, Y_df)
+
+def print_dataset(X_train, Y_train):
+    for i in range(len(X_train)):
+        print(X_train.iloc[i])
+        print(Y_train.iloc[i])
+        print()
 

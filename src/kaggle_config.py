@@ -26,4 +26,3 @@ def download_dataset(dataset_name="", path='datasets/', unzip=True):
         kaggle_api = KaggleApi()
         kaggle_api.authenticate()
         kaggle_api.dataset_download_files(dataset_name, path=path, unzip=unzip)
-

@@ -33,8 +33,8 @@ KAGGLE_DATASET_LINK=ealtman2019/ibm-transactions-for-anti-money-laundering-aml
 
 `deactivate`
 
-### Run the `main.py` file of the `decision_tree` module 
+### Run the `main.py` file 
 
-`python3 -m src.decision_tree.main`
+`python3 -m src.main`
 
 
