@@ -11,6 +11,7 @@ The project is based on the analysis of the «IBM Transactions for Anti Money La
 KAGGLE_USER=
 KAGGLE_KEY=
 KAGGLE_DATASET_LINK=ealtman2019/ibm-transactions-for-anti-money-laundering-aml
+VERBOSE=0
 ```
 
 2. If you prefer to use Kaggle-style configuration, you need to create `.kaggle` folder in the root directory and add `kaggle.json` into using the following template:
