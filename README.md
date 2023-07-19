@@ -1,3 +1,7 @@
+|Decision Tree | Random Forest|
+|-|-|
+|[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg) ](https://colab.research.google.com/github/federicobruzzone/anti-money-laundering/blob/main/decision_tree.ipynb)| [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg) ](https://colab.research.google.com/github/federicobruzzone/anti-money-laundering/blob/main/random_forest.ipynb)|
+
 # Anti Money Laundering
 
 The project is based on the analysis of the «IBM Transactions for Anti Money Laundering» dataset published on Kaggle. The task is to implement a system which predicts whether or not a transaction is illicit, using the attribute "Is Laundering" as a label to be predicted.

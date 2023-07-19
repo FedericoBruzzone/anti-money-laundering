@@ -16,4 +16,3 @@ for file in list_of_ipynb_files:
     os.system(f"jupyter nbconvert --clear-output --inplace {file}")
 
 print("All notebooks have been cleared of their outputs.")
-

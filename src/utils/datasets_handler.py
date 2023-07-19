@@ -7,9 +7,8 @@ def get_train_and_test(dataset_name = "LI-Small_Trans.csv", verbose = False):
     df_train = df.sample(frac=0.8, random_state=1)
     df_test  = df.drop(df_train.index)
 
-    # print first 20 rows of df_train completely
-    print(df_train.head(5))
-    print(df_train.nunique())
+    # print(df_train.head(5))
+    # print(df_train.nunique())
 
     if verbose:
         print(df.shape)
@@ -29,6 +28,15 @@ def get_X_and_Y(df, verbose = 0):
         print(Y_df.head())
 
     return (X_df, Y_df)
+
+def label_encoder(df: pd.DataFrame, columns: list[str]):
+        encoders = {}
+        for column in columns:
+            unique_values = df[column].unique()
+            encoder = {value: index for index, value in enumerate(unique_values)}
+            df[column] = df[column].map(encoder)
+            encoders[column] = encoder
+        return df, encoders
 
 def print_dataset(X_train, Y_train):
     for i in range(len(X_train)):
