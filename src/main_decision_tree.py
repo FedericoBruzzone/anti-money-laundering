@@ -16,8 +16,6 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-
-
 if __name__ == "__main__":
     VERBOSE = int(os.getenv('VERBOSE'))
 
@@ -74,7 +72,7 @@ if __name__ == "__main__":
     X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     # print_dataset(X_train, y_train)
 
-    decision_tree = DecisionTree("gini", type_criterion=0)
+    decision_tree: DecisionTree = DecisionTree("gini", type_criterion=0)
     print(decision_tree)
     decision_tree.fit(X_train, y_train)
     

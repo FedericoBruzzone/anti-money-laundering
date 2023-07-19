@@ -13,7 +13,6 @@ class DecisionTree(AbstractDecisionTree):
         self.__fit_rec(self.root, 0)
 
     def __fit_rec(self, node: ConditionNode, depth):
-        print("__fit_rec")
         if depth >= self.max_depth:
             print("Max depth reached")
             return
@@ -24,11 +23,10 @@ class DecisionTree(AbstractDecisionTree):
             print("All the same")
             return
         
-        print("After base cases")
+        print("Generate attribute")
         attribute_index = node.generate_attribute()
         print("Picked Attribute: " + str(attribute_index))
         
-
     def __str__(self):
         print("Decision Tree")
         return super().__str__()
