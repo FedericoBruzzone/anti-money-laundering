@@ -21,7 +21,9 @@ dependencies = [
     "ipykernel",
     "pyspark",
     "kaggle",
-    "jedi"
+    "jedi",
+    "scikit-learn",
+    "graphviz"
 ]
 
 [tool.setuptools]
