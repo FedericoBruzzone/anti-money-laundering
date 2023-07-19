@@ -183,3 +183,5 @@ pyvenv.cfg
 pip-selfcheck.json
 
 datasets/
+*.dot
+*.png

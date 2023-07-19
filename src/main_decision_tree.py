@@ -73,9 +73,9 @@ if __name__ == "__main__":
     # print_dataset(X_train, y_train)
 
     decision_tree: DecisionTree = DecisionTree("gini", type_criterion=0)
-    print(decision_tree)
     decision_tree.fit(X_train, y_train)
-    
+    print(decision_tree)
+    decision_tree.create_dot_files(view=True)
 
     # print(type(X_train.iloc[0].values)) # <class 'numpy.ndarray'>
     # print(X_train.iloc[0]["Timestamp"])

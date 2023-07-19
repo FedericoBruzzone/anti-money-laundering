@@ -17,7 +17,7 @@ class ConditionNode(object):
     IMP_FUNC_GINI = 1
 
     def __init__(self, condition: int           = None,
-                       children: Any            = None,
+                       children: list           = [],
                        parent: Any              = None,
                        subset_indeces: set[int] = None,
                        value: int               = None):
@@ -122,11 +122,19 @@ class ConditionNode(object):
     def set_df_y(self, df_y: pd.DataFrame):
         self.df_y = df_y
 
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         return len(self.children) == 0
 
-    def __str__(self):
-        return f"ConditionNode({self.value}, {self.condition}, {self.children})"
+    def str_dot(self) -> str:
+        if self.is_leaf():
+            return f"{self.value}"
+        else:
+            node_str: str = f"{self.value}"
+            for i, child in enumerate(self.children):
+                branch_str: str = f"{i}"
+                child_str: str = child.str_dot().replace("\n", "\n\t")
+                node_str += f"\n\t{branch_str} -> {child_str}"
+            return node_str
 
 class AbstractDecisionTree(object, metaclass=ABCMeta):
     def __init__(self, criterion, type_criterion, max_depth, min_samples_split):
@@ -162,5 +170,35 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         for i in range(len(x_list)):
             yield self.predict(x_list[i])
 
-    def __str__(self):
-        return ""
+    def str_dot(self) -> str:
+        dot_str: str = "digraph DecisionTree {\n"
+        dot_str += "\trankdir=TD;\n"
+        dot_str += "\tnode [shape=box];\n"
+
+        def traverse(node: ConditionNode, parent_id: str) -> str:
+            node_id: str = str(id(node))
+            dot_str: str = f"\t{node_id} [label=\"{node.str_dot()}\"];\n"
+            if parent_id:
+                dot_str += f"\t{parent_id} -> {node_id};\n"
+            if not node.is_leaf():
+                for child in node.children:
+                    child_dot_str: str = traverse(child, node_id)
+                    dot_str += child_dot_str
+            return dot_str
+
+        dot_str += traverse(self.root, "")
+        dot_str += "}\n"
+        return dot_str
+    
+    def create_dot_files(self, filename: str = "tree.dot", view: bool = False):
+        with open(filename, "w") as f:
+            f.write(self.str_dot())
+        import subprocess
+        command: str = f"dot -Tpng {filename} -o tree.png"
+        subprocess.run(command, shell=True, check=True) 
+        if view:
+            command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
+            subprocess.run(command, shell=True, check=True) 
+
+    def __str__(self) -> str:
+        return "AbstractDecisionTree"

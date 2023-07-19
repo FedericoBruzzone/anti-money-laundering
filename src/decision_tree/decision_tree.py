@@ -28,6 +28,5 @@ class DecisionTree(AbstractDecisionTree):
         print("Picked Attribute: " + str(attribute_index))
         
     def __str__(self):
-        print("Decision Tree")
         return super().__str__()
 
