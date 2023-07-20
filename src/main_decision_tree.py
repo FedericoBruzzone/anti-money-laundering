@@ -37,15 +37,20 @@ if __name__ == "__main__":
     # df_train = pd.concat([is_laundering, is_not_laundering],axis=0)
     # print("Undersampled df len: ", len(df_train))
     # ----------------------
+    
 
     # Oversampling --------
     pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
     print("RATIO", pos_neg_ratio)
 
     while 1 - pos_neg_ratio > 0.2:
-        print("Undersampling...", 1 - pos_neg_ratio)
-        df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]])
+        print("Oversampling...", 1 - pos_neg_ratio)
+
+        df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]], ignore_index=True)
         pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
+    
+    print("Length of training set:", len(df_train))
+
     # ----------------------
 
     # scikit-learn
@@ -55,10 +60,10 @@ if __name__ == "__main__":
     X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     # print_dataset(X_train, y_train)
     
-    decision_tree: DecisionTree = DecisionTree("gini", type_criterion=0)
+    decision_tree: DecisionTree = DecisionTree("gini", type_criterion=0, max_depth=5)
     decision_tree.fit(X_train, y_train)
     print(decision_tree)
-    decision_tree.create_dot_files(generate_png=False, view=False)
+    decision_tree.create_dot_files(generate_png=True, view=True)
 
 
     predictions = list(decision_tree.predict_test(X_test))
@@ -72,18 +77,22 @@ if __name__ == "__main__":
                 tp += 1
             else:
                 tn += 1
-        elif p != y_test.iloc[i]:
+        else:
             if p == 1:
                 fp += 1
             else:
                 fn += 1
 
     print("TP:", tp)
-    print("FP:", fp)
     print("TN:", tn)
+
+    print("FP:", fp)
     print("FN:", fn)
-    print("TP+TN: ", tp+tn)
-    print(len(y_test))
+    print("TP+TN:", tp+tn)
+    print("Length of test set:", len(y_test))
+
+    print("Accuracy:", (tp+tn)/len(y_test))
+    print("F_1 score:", (2*tp)/(2*tp+fp+fn))
 
     # print(type(X_train.iloc[0].values)) # <class 'numpy.ndarray'>
     # print(X_train.iloc[0]["Timestamp"])
