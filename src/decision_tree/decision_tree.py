@@ -4,7 +4,7 @@ from src.decision_tree.abstract_decision_tree import ConditionNode
 import pandas as pd
 
 class DecisionTree(AbstractDecisionTree):
-    def __init__(self, criterion, type_criterion=ConditionNode.TYPE_CRIT_RANDOM, max_depth=30, min_samples_split=2):
+    def __init__(self, criterion, type_criterion=ConditionNode.TYPE_CRIT_RANDOM, max_depth=3, min_samples_split=2):
         super().__init__(criterion, type_criterion, max_depth, min_samples_split)
     
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
@@ -23,10 +23,10 @@ class DecisionTree(AbstractDecisionTree):
             print("All the same")
             return
         
-        print("Generate attribute")
-        attribute_index = node.generate_attribute()
-        print("Picked Attribute: " + str(attribute_index))
-        
+        node.generate_condition().split()
+        self.__fit_rec(node.children[0], depth + 1)
+        self.__fit_rec(node.children[1], depth + 1)
+
     def __str__(self):
         return super().__str__()
 

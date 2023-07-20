@@ -1,8 +1,9 @@
 import random
-import itertools
+import collections
 from typing import Any
 from types import FunctionType
 from types import MethodType
+from types import LambdaType
 from abc import ABCMeta
 from abc import abstractmethod
 
@@ -16,17 +17,22 @@ class ConditionNode(object):
     IMP_FUNC_ENTROPY = 0
     IMP_FUNC_GINI = 1
 
-    def __init__(self, condition: int           = None,
+    def __init__(self, parent: Any              = None,
+                       condition: int           = None,
                        children: list           = [],
-                       parent: Any              = None,
                        subset_indeces: set[int] = None,
                        value: int               = None):
-        self.value: int                    = value
+        if parent:
+            self.df_x: pd.DataFrame = parent.df_x
+            self.df_y: pd.DataFrame = parent.df_y
         self.condition: FunctionType       = condition
         self.children: list[ConditionNode] = children
         self.parent: ConditionNode         = parent
         self.subset_indeces: set[int]      = subset_indeces
-        
+        self.value: int                    = self.calculate_value() if value is None else value
+        self.dot_attr: collections.defaultdict[str, Any] = collections.defaultdict(str)
+    
+    
     def _gini_impurity(self, y: pd.Series) -> float:
         if isinstance(y, pd.Series):
             prob: float = y.value_counts() / y.shape[0]
@@ -69,7 +75,7 @@ class ConditionNode(object):
         # y = self.df_y.take(list(self.root.subset_indeces))
         # gini = self.gini_impurity(y)
         # print("Gini: " + f"{gini:.5f}")
-        return lambda x: 0 
+        self.children: LambdaType = lambda x: 0 
 
     def _generate_attribute_random(self, imp_func: int = IMP_FUNC_ENTROPY) -> FunctionType:
         """
@@ -95,26 +101,52 @@ class ConditionNode(object):
             if information_gain > best_ig:
                 best_ig = information_gain
                 best_val = value
-        print(f"Best value: {best_val}")
-        print(f"Best information gain: {best_ig}")
-        
+
         if is_categorical:
-            return lambda row: row[attr_name] == best_val
+            self.condition: LambdaType = lambda row: row[attr_name] == best_val
         else:
-            return lambda row: row[attr_name] <= best_val
+            self.condition: LambdaType = lambda row: row[attr_name] <= best_val
+        
+        self.dot_attr = collections.defaultdict(str, {
+            "attr_name": attr_name,
+            "condition_value": best_val,
+            "ig": best_ig,
+            "is_categorical": is_categorical
+        })
                     
-    def generate_attribute(self, type_criterion: int = 0, imp_func: int = 0) -> FunctionType:
+    def generate_condition(self, type_criterion: int = 0, imp_func: int = 0) -> FunctionType:
         """
         type_criterion: 0 = random, 1 = best
         imp_func: 0 = entropy, 1 = gini
         """
         if type_criterion == self.TYPE_CRIT_BEST:
-            return self._generate_attribute_best(imp_func)
+            self._generate_attribute_best(imp_func)
         else:
-            return self._generate_attribute_random(imp_func)
+            self._generate_attribute_random(imp_func)
+        return self
+    
+    def split(self):
+        if self.condition is None:
+            raise Exception("Condition is None")
+        else:
+            df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
+            sx_indices = set(df_filtered.loc[df_filtered.apply(self.condition, axis=1)].index.tolist())
+            dx_indices = set(df_filtered.index.tolist()) - sx_indices
+            print(len(sx_indices))
+            print(len(dx_indices))
+            print(len(sx_indices) + len(dx_indices))
+            
+            sx_node = ConditionNode(parent=self, subset_indeces=sx_indices)
+            dx_node = ConditionNode(parent=self, subset_indeces=dx_indices)
+            self.children = [sx_node, dx_node]
+    
+    def calculate_value(self):
+        if len(self.subset_indeces) == 0:
+            return 0
+        return round(sum(self.df_y.loc[list(self.subset_indeces)]) / len(self.subset_indeces))
 
     def get_labels(self) -> pd.Series:
-        return self.df_y.take(list(self.subset_indeces))
+        return self.df_y
     
     def set_df_x(self, df_x: pd.DataFrame):
         self.df_x = df_x
@@ -126,15 +158,12 @@ class ConditionNode(object):
         return len(self.children) == 0
 
     def str_dot(self) -> str:
-        if self.is_leaf():
-            return f"{self.value}"
-        else:
-            node_str: str = f"{self.value}"
-            for i, child in enumerate(self.children):
-                branch_str: str = f"{i}"
-                child_str: str = child.str_dot().replace("\n", "\n\t")
-                node_str += f"\n\t{branch_str} -> {child_str}"
-            return node_str
+        str = ""
+        if not self.is_leaf():
+            str = f"""{self.dot_attr["attr_name"]} {"=" if self.dot_attr["is_categorical"] else "<="} {self.dot_attr["condition_value"]}
+IG: {self.dot_attr["ig"]:3f}"""
+            
+        return f"""Value: {self.value}\n{str}"""
 
 class AbstractDecisionTree(object, metaclass=ABCMeta):
     def __init__(self, criterion, type_criterion, max_depth, min_samples_split):
@@ -142,12 +171,11 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         self.type_criterion = type_criterion
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
-        
+
     @abstractmethod
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
-        self.root: ConditionNode = ConditionNode()
-        self.root.value = round(sum(df_y) / len(df_y)) 
-        self.root.subset_indeces = set(range(len(df_y)))   
+        self.root: ConditionNode = ConditionNode(value=round(sum(df_y) / len(df_y)), 
+                                                 subset_indeces=set(df_x.index.tolist()))
         self.root.set_df_x(df_x)
         self.root.set_df_y(df_y)
 
@@ -178,7 +206,7 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         def traverse(node: ConditionNode, parent_id: str) -> str:
             node_id: str = str(id(node))
             dot_str: str = f"\t{node_id} [label=\"{node.str_dot()}\"];\n"
-            if parent_id:
+            if parent_id != "":
                 dot_str += f"\t{parent_id} -> {node_id};\n"
             if not node.is_leaf():
                 for child in node.children:
@@ -188,6 +216,7 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
 
         dot_str += traverse(self.root, "")
         dot_str += "}\n"
+        # print(dot_str)
         return dot_str
     
     def create_dot_files(self, filename: str = "tree.dot", view: bool = False):
@@ -198,7 +227,8 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         subprocess.run(command, shell=True, check=True) 
         if view:
             command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
+            # TODO: check if it works on Windows
             subprocess.run(command, shell=True, check=True) 
 
     def __str__(self) -> str:
-        return "AbstractDecisionTree"
+        return ""
