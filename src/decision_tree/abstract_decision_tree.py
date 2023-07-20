@@ -130,12 +130,8 @@ class ConditionNode(object):
             raise Exception("Condition is None")
         else:
             df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
-            sx_indices = set(df_filtered.loc[df_filtered.apply(self.condition, axis=1)].index.tolist())
-            dx_indices = set(df_filtered.index.tolist()) - sx_indices
-            print(len(sx_indices))
-            print(len(dx_indices))
-            print(len(sx_indices) + len(dx_indices))
-            
+            sx_indices: set = set(df_filtered.loc[df_filtered.apply(self.condition, axis=1)].index.tolist())
+            dx_indices: set = set(df_filtered.index.tolist()) - sx_indices        
             sx_node = ConditionNode(parent=self, subset_indeces=sx_indices)
             dx_node = ConditionNode(parent=self, subset_indeces=dx_indices)
             self.children = [sx_node, dx_node]
@@ -179,8 +175,7 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         self.root.set_df_x(df_x)
         self.root.set_df_y(df_y)
 
-    # TODO: add type hinting
-    def __predict_rec(self, x, node: ConditionNode):
+    def __predict_rec(self, x: pd.Series, node: ConditionNode):
         val = None
         if node.is_leaf():
             val = node.value
@@ -189,14 +184,13 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
             val = self.__predict_rec(x, node.children[branch])
         return val
    
-    # TODO: add type hinting
-    def predict(self, x): 
-        self.__predict_rec(x, self.root)
+
+    def predict(self, x: pd.Series): 
+        return self.__predict_rec(x, self.root)
         
-    # TODO: add type hinting    
-    def predict_train(self, x_list):
-        for i in range(len(x_list)):
-            yield self.predict(x_list[i])
+    def predict_test(self, X: pd.DataFrame):
+        for i in range(len(X)):
+            yield self.predict(X.iloc[i])
 
     def str_dot(self) -> str:
         dot_str: str = "digraph DecisionTree {\n"
@@ -219,15 +213,16 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         # print(dot_str)
         return dot_str
     
-    def create_dot_files(self, filename: str = "tree.dot", view: bool = False):
+    def create_dot_files(self, filename: str = "tree.dot", generate_png:bool = False, view: bool = False):
         with open(filename, "w") as f:
             f.write(self.str_dot())
+
         import subprocess
-        command: str = f"dot -Tpng {filename} -o tree.png"
-        subprocess.run(command, shell=True, check=True) 
+        if generate_png:
+            command: str = f"dot -Tpng {filename} -o tree.png"
+            subprocess.run(command, shell=True, check=True) 
         if view:
             command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
-            # TODO: check if it works on Windows
             subprocess.run(command, shell=True, check=True) 
 
     def __str__(self) -> str:
