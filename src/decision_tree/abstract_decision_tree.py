@@ -139,7 +139,15 @@ class ConditionNode(object):
     def calculate_value(self):
         if len(self.subset_indeces) == 0:
             return 0
-        return round(sum(self.df_y.loc[list(self.subset_indeces)]) / len(self.subset_indeces))
+
+        # value = round(sum(self.df_y.loc[list(self.subset_indeces)]) / len(self.subset_indeces))
+
+        value = round(sum(self.df_y.filter(list(self.subset_indeces))) / len(self.subset_indeces))
+
+        assert len(self.df_y.filter(list(self.subset_indeces))) == len(self.subset_indeces)
+        assert value == 0 or value == 1
+
+        return value
 
     def get_labels(self) -> pd.Series:
         return self.df_y
@@ -159,7 +167,7 @@ class ConditionNode(object):
             str = f"""{self.dot_attr["attr_name"]} {"=" if self.dot_attr["is_categorical"] else "<="} {self.dot_attr["condition_value"]}
 IG: {self.dot_attr["ig"]:3f}"""
             
-        return f"""Value: {self.value}\n{str}"""
+        return f"""Class: {self.calculate_value()}\n{str}"""
 
 class AbstractDecisionTree(object, metaclass=ABCMeta):
     def __init__(self, criterion, type_criterion, max_depth, min_samples_split):
@@ -214,16 +222,21 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         return dot_str
     
     def create_dot_files(self, filename: str = "tree.dot", generate_png:bool = False, view: bool = False):
+
+        str_dot = self.str_dot()
+
         with open(filename, "w") as f:
-            f.write(self.str_dot())
+            f.write(str_dot)
 
         import subprocess
         if generate_png:
             command: str = f"dot -Tpng {filename} -o tree.png"
             subprocess.run(command, shell=True, check=True) 
         if view:
-            command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
-            subprocess.run(command, shell=True, check=True) 
+            # command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
+            # subprocess.run(command, shell=True, check=True) 
+
+            subprocess.run("code tree.png", shell=True, check=True) 
 
     def __str__(self) -> str:
         return ""
