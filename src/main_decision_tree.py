@@ -59,40 +59,56 @@ if __name__ == "__main__":
     X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     # print_dataset(X_train, y_train)
+
+
+    performances_accuracy = []
+    performances_F1_score = []
+
+    n_iter = 5
+
+    for i in range(n_iter):
+        print("Iteration:", i)
     
-    decision_tree: DecisionTree = DecisionTree("gini", type_criterion=0, max_depth=5)
-    decision_tree.fit(X_train, y_train)
-    print(decision_tree)
-    decision_tree.create_dot_files(generate_png=True, view=True)
+        decision_tree: DecisionTree = DecisionTree("gini", type_criterion=0, max_depth=4)
+        decision_tree.fit(X_train, y_train)
+        print(decision_tree)
+        decision_tree.create_dot_files(generate_png=True, view=False)
 
 
-    predictions = list(decision_tree.predict_test(X_test))
-    tp = 0
-    tn = 0
-    fp = 0
-    fn = 0
-    for i, p in enumerate(predictions):
-        if p == y_test.iloc[i]:
-            if p == 1:
-                tp += 1
+        predictions = list(decision_tree.predict_test(X_test))
+        tp = 0
+        tn = 0
+        fp = 0
+        fn = 0
+        for i, p in enumerate(predictions):
+            if p == y_test.iloc[i]:
+                if p == 1:
+                    tp += 1
+                else:
+                    tn += 1
             else:
-                tn += 1
-        else:
-            if p == 1:
-                fp += 1
-            else:
-                fn += 1
+                if p == 1:
+                    fp += 1
+                else:
+                    fn += 1
 
-    print("TP:", tp)
-    print("TN:", tn)
+        print("TP:", tp)
+        print("TN:", tn)
+        print("FP:", fp)
+        print("FN:", fn)
+        print("TP+TN:", tp+tn)
+        print("Length of test set:", len(y_test))
 
-    print("FP:", fp)
-    print("FN:", fn)
-    print("TP+TN:", tp+tn)
-    print("Length of test set:", len(y_test))
+        accuracy = (tp+tn)/len(y_test)
+        f1_score = (2*tp)/(2*tp+fp+fn)
+        print("Accuracy:", accuracy)
+        print("F_1 score:", f1_score)
 
-    print("Accuracy:", (tp+tn)/len(y_test))
-    print("F_1 score:", (2*tp)/(2*tp+fp+fn))
+        performances_accuracy.append(accuracy)
+        performances_F1_score.append(f1_score)
+    
+    print("Average accuracy:", sum(performances_accuracy)/n_iter)
+    print("Average F_1 score:", sum(performances_F1_score)/n_iter)
 
     # print(type(X_train.iloc[0].values)) # <class 'numpy.ndarray'>
     # print(X_train.iloc[0]["Timestamp"])
