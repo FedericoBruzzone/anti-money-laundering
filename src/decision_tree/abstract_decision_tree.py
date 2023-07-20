@@ -92,7 +92,7 @@ class ConditionNode(object):
             step = 0.20
             possible_values: list[float] = attr_series.quantile(np.arange(0, 1, step=step)).values
         
-        print(f"Possible values: {possible_values}")
+        # print(f"Possible values: {possible_values}")
 
         best_val: float = -1.
         best_ig: float  = -1.
