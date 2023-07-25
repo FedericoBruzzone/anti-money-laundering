@@ -20,7 +20,7 @@ class DecisionTree(AbstractDecisionTree):
         elif len(set(node.get_labels())) == 1:
             return
         
-        node.generate_condition().split()
+        node.generate_condition(imp_func=self.criterion).split()
         self.__fit_rec(node.children[0], depth + 1)
         self.__fit_rec(node.children[1], depth + 1)
 

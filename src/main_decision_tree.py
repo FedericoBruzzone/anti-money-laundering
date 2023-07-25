@@ -69,7 +69,7 @@ if __name__ == "__main__":
     for i in range(n_iter):
         print("Iteration:", i)
     
-        decision_tree: DecisionTree = DecisionTree(type_criterion=0, max_depth=6)
+        decision_tree: DecisionTree = DecisionTree(criterion=0, type_criterion=0, max_depth=10)
         decision_tree.fit(X_train, y_train)
         print(decision_tree)
         decision_tree.create_dot_files(generate_png=True, view=False)
