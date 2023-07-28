@@ -1,5 +1,7 @@
+import math
 import pandas as pd
 import numpy as np
+from scipy import stats
 from typing import Any
 from types import FunctionType
 from types import MethodType
@@ -15,17 +17,21 @@ class ConditionNodeID3(ConditionNode):
                        children: list           = [],
                        subset_indeces: set[int] = None,
                        value: int               = None,
-                       splitted_attr_names: list[str] = []):
+                       splitted_attr_names: list[str] = [],
+                       continuous_attr_groups = 1):
         super().__init__(parent=parent, condition=condition, children=children, subset_indeces=subset_indeces, value=value)
 
         self.children = {}
         # Contains the names of the attributes already used for split the tree
         self.splitted_attr_names = splitted_attr_names
+        self.continuous_attr_groups = continuous_attr_groups
     
     def generate_condition(self) -> FunctionType:
 
         max_info_gain: float = -1
         max_info_gain_attr_name: str = None
+        max_is_categorical: bool = False
+        max_condition : LambdaType = None
 
         for attr_name in self.df_x.columns:
 
@@ -35,22 +41,20 @@ class ConditionNodeID3(ConditionNode):
             attr_series: pd.Series = self.df_x[attr_name]
 
             is_categorical: bool = self._is_categorical(attr_name)
+            info_gain, condition = None, None
 
             if is_categorical:
                 print(attr_name, "CATEGORICAL", attr_series.nunique())
-                info_gain = self._compute_info_gain_categorical(attr_series)
+                info_gain, condition = self._compute_info_gain_categorical(attr_name)
             else:
                 print(attr_name, "NUMERICAL", attr_series.nunique())
-                continue
-                # info_gain, threshold = self._compute_info_gain_numerical(attr_series)
+                info_gain, condition = self._compute_info_gain_numerical(attr_name)
 
             if info_gain > max_info_gain:
                 max_info_gain = info_gain
                 max_info_gain_attr_name = attr_name
-        
-        # TODO: remove
-        if not max_info_gain_attr_name:
-            return self
+                max_is_categorical = is_categorical
+                max_condition = condition
         
         print("SPLIT ON", max_info_gain_attr_name, "with ig=", max_info_gain)
 
@@ -59,13 +63,46 @@ class ConditionNodeID3(ConditionNode):
         # attr_values = pd.Series(self.df_x.iloc[list(self.subset_indeces)][max_info_gain_attr_name].unique())
 
         # self.condition: LambdaType = lambda row: attr_values[attr_values == row[max_info_gain_attr_name]].index[0]
-        self.condition: LambdaType = lambda row: row[max_info_gain_attr_name]
+
+        attr_series: pd.Series = self.df_x[max_info_gain_attr_name]
+
+        self.condition = max_condition
 
         self.splitted_attr_names.append(max_info_gain_attr_name)
 
-        self.set_dot_attr(max_info_gain_attr_name, " ", float(max_info_gain), is_categorical) # TODO: fix the " " in ancestor
+        self.set_dot_attr(max_info_gain_attr_name, " ", float(max_info_gain), max_is_categorical) # TODO: fix the " " in ancestor
         
         return self
+    
+    def _compute_info_gain_categorical(self, attr_name: str):
+        attr_series : pd.Series = self.df_x[attr_name]
+        info_attr = 0
+        tot_instances = len(attr_series)
+
+        for value, n_instances in attr_series.value_counts().items():
+            mask: pd.Series = attr_series == value
+            
+            info_attr += (n_instances/tot_instances) * self._entropy(self.df_y[mask])
+
+        return self._entropy(self.df_y) - info_attr, lambda row: row[attr_name]
+
+    def _compute_info_gain_numerical(self, attr_name: str):
+        attr_series : pd.Series = self.df_x[attr_name]
+        info_attr = 0
+        tot_instances = len(attr_series)
+
+        n_groups = self.continuous_attr_groups if self.continuous_attr_groups <= attr_series.nunique() else attr_series.nunique()
+
+        quantiles_list = attr_series.quantile(np.arange(0, 1, step=1 / n_groups), interpolation="nearest")
+
+        for value, n_instances in quantiles_list.items():
+            mask: pd.Series = attr_series == value
+            
+            info_attr += (n_instances/tot_instances) * self._entropy(self.df_y[mask])
+        
+        condition = lambda row: math.floor(stats.percentileofscore(quantiles_list, row[attr_name]) * n_groups / 100) - 1
+
+        return self._entropy(self.df_y) - info_attr, condition
     
     def split(self):
 
@@ -85,7 +122,7 @@ class ConditionNodeID3(ConditionNode):
                 children_indices.update({key: children_indices[key] + [index]})
 
             for key in children_indices:
-                print(key)
+                # print(key)
                 self.children.update({key: ConditionNodeID3(parent=self, subset_indeces=set(children_indices[key]), splitted_attr_names=self.splitted_attr_names)})
 
             """
@@ -97,32 +134,16 @@ class ConditionNodeID3(ConditionNode):
                     self.children.append(ConditionNodeID3(parent=self, subset_indeces=set(children_indices[i]), splitted_attr_names=self.splitted_attr_names))
             """
         return self
-    
-    def _compute_info_gain_categorical(self, attr_series: pd.Series):
-        info_attr = 0
-        tot_instances = len(attr_series)
-
-        for value, n_instances in attr_series.value_counts().items():
-            mask: pd.Series = attr_series == value
-            
-            info_attr += (n_instances/tot_instances) * self._entropy(self.df_y[mask])
-
-        return self._entropy(self.df_y) - info_attr
-
-    def _compute_info_gain_numerical(self, attr_series: pd.Series):
-        pass
-    
-    def is_leaf(self) -> bool:
-        return super().is_leaf()
 
 
 class DecisionTreeID3(AbstractDecisionTree):
-    def __init__(self):
-        super().__init__(None, None) # TODO: remove mandatory arguments in ancestor
+    def __init__(self, max_depth=5, continuous_attr_groups=1):
+        super().__init__(max_depth=max_depth)
+        self.continuous_attr_groups = continuous_attr_groups
     
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
 
-        self.root = ConditionNodeID3(value=round(sum(df_y) / len(df_y)), subset_indeces=set(df_x.index.tolist()))
+        self.root = ConditionNodeID3(value=round(sum(df_y) / len(df_y)), subset_indeces=set(df_x.index.tolist()), continuous_attr_groups=self.continuous_attr_groups)
 
         self.root.set_df_x(df_x)
         self.root.set_df_y(df_y)
@@ -135,24 +156,13 @@ class DecisionTreeID3(AbstractDecisionTree):
             or (len(set(node.get_labels())) == 1)
             or len(set(node.splitted_attr_names))) >= len(set(node.df_x.columns)):
             return
-        
-        # TODO: remove
-        end = True
-        for e in node.df_x[list(set(node.df_x.columns) - set(node.splitted_attr_names))].dtypes:
-            
-            if type(e) == np.dtypes.ObjectDType:
-                end = False
-                break
-        if end:
-            return
 
-        print("DEPTH", depth)
+        # print("DEPTH", depth)
         
         labels_sum = sum(node.get_labels())
-        print("TEST", labels_sum)
 
+        # Test if all labels are equal
         if labels_sum == 0 or labels_sum == len(node.get_labels()):
-            print("tutti uguali!")
             return
         
         node.generate_condition().split()

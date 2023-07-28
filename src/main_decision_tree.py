@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+import time
 import pandas as pd
 
 import warnings
@@ -73,8 +74,13 @@ if __name__ == "__main__":
 
     #X_train.astype({'Account': 'int32'})
 
-    decision_tree: DecisionTreeID3 = DecisionTreeID3()
+    start_time = time.time()
+
+    decision_tree: DecisionTreeID3 = DecisionTreeID3(continuous_attr_groups=8)
     decision_tree.fit(X_train, y_train)
+
+    print("--- Fit time: %s seconds ---" % (time.time() - start_time))
+
     print(decision_tree)
     decision_tree.create_dot_files(generate_png=True, view=False)
 
@@ -97,12 +103,15 @@ if __name__ == "__main__":
     except:
         pass
 
-    print("TP:", tp)
-    print("TN:", tn)
-    print("FP:", fp)
-    print("FN:", fn)
+    print("TP:", tp, "TN:", tn, "FP:", fp, "FN:", fn)
 
-    # assert(False)
+    accuracy_id3 = (tp+tn)/len(y_test)
+    f1_score_id3 = (2*tp)/(2*tp+fp+fn)
+
+    print("Accuracy:", accuracy_id3)
+    print("F_1 score:", f1_score_id3)
+
+    assert(False)
 
     # accuracy, f1_score = p_measures.calculate_performances(predictions, y_test)
         
