@@ -56,6 +56,8 @@ class ConditionNodeID3(ConditionNode):
                 max_is_categorical = is_categorical
                 max_condition = condition
         
+        print("max_info_name:", max_info_gain_attr_name)
+        
         print("SPLIT ON", max_info_gain_attr_name, "with ig=", max_info_gain)
 
         #print(self.df_x.iloc[list(self.subset_indeces)][max_info_gain_attr_name].unique())
@@ -68,7 +70,7 @@ class ConditionNodeID3(ConditionNode):
 
         self.condition = max_condition
 
-        self.splitted_attr_names.append(max_info_gain_attr_name)
+        self.splitted_attr_names.extend(max_info_gain_attr_name)
 
         self.set_dot_attr(max_info_gain_attr_name, " ", float(max_info_gain), max_is_categorical) # TODO: fix the " " in ancestor
         
@@ -154,7 +156,7 @@ class DecisionTreeID3(AbstractDecisionTree):
         if ((self.max_depth and depth >= self.max_depth)
             or (len(node.subset_indeces) < self.min_samples_split)
             or (len(set(node.get_labels())) == 1)
-            or len(set(node.splitted_attr_names))) >= len(set(node.df_x.columns)):
+            or len(node.splitted_attr_names)) >= len(node.df_x.columns):
             return
 
         # print("DEPTH", depth)
@@ -165,6 +167,8 @@ class DecisionTreeID3(AbstractDecisionTree):
         if labels_sum == 0 or labels_sum == len(node.get_labels()):
             return
         
+        print(len(node.splitted_attr_names), " ---- ", len(node.df_x.columns))
+
         node.generate_condition().split()
 
         for nd in node.children.values():

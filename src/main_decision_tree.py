@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
     start_time = time.time()
 
-    decision_tree: DecisionTreeID3 = DecisionTreeID3(continuous_attr_groups=8)
+    decision_tree: DecisionTreeID3 = DecisionTreeID3(continuous_attr_groups=7)
     decision_tree.fit(X_train, y_train)
 
     print("--- Fit time: %s seconds ---" % (time.time() - start_time))
