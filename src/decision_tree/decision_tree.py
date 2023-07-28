@@ -162,7 +162,9 @@ class CustomConditionNode(ConditionNode):
 class CustomDecisionTree(AbstractDecisionTree):
 
     def __init__(self, criterion, type_criterion=CustomConditionNode.TYPE_CRIT_RANDOM, max_depth=5, min_samples_split=2):
-        super().__init__(criterion, type_criterion, max_depth, min_samples_split)
+        super().__init__(max_depth=max_depth, min_samples_split=min_samples_split)
+        self.criterion = criterion
+        self.type_criterion = type_criterion
     
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
         self.root: ConditionNode = CustomConditionNode(value=round(sum(df_y) / len(df_y)), subset_indeces=set(df_x.index.tolist()))

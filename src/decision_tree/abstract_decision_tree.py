@@ -95,9 +95,7 @@ IG: {self.dot_attr["ig"]}"""
 
 class AbstractDecisionTree(object, metaclass=ABCMeta):
 
-    def __init__(self, criterion, type_criterion, max_depth=None, min_samples_split=2):
-        self.criterion = criterion
-        self.type_criterion = type_criterion
+    def __init__(self, max_depth=None, min_samples_split=2):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
 
