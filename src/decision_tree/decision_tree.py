@@ -52,7 +52,7 @@ class CustomConditionNode(ConditionNode):
         imp_func: 0 = entropy, 1 = gini
         """
         imp_func: MethodType = self._scaled_entropy if imp_func == self.IMP_FUNC_ENTROPY else self._gini_impurity
-        mask: pd.Series  = attr_series == test_value if is_categorical else attr_series <= test_value
+        mask: pd.Series = attr_series == test_value if is_categorical else attr_series <= test_value
         a: int   = sum(mask)
         b: int   = sum(~mask)
         tot: int = a + b
@@ -121,7 +121,7 @@ class CustomConditionNode(ConditionNode):
         index: int             = random.randint(0, len(self.df_x.columns) - 1)
         attr_name: str         = self.df_x.columns[index] # "Payment Currency"
         attr_series: pd.Series = self.df_x[attr_name]
-        is_categorical = self.df_x.dtypes[index] == np.int64 and attr_series.nunique() < 20
+        is_categorical = self.df_x.dtypes[index] == np.int64 and attr_series.nunique() < 20 # TODO: Update using the method
 
         if is_categorical:
             possible_values: list[int] = attr_series.unique() 
@@ -168,18 +168,17 @@ class CustomDecisionTree(AbstractDecisionTree):
         self.type_criterion = type_criterion
     
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
-        self.root: ConditionNode = CustomConditionNode(value=round(sum(df_y) / len(df_y)), subset_indeces=set(df_x.index.tolist()))
+        self.root: ConditionNode = CustomConditionNode(value=round(sum(df_y) / len(df_y)), 
+                                                       subset_indeces=set(df_x.index.tolist()))
         self.root.set_df_x(df_x)
         self.root.set_df_y(df_y)
              
         self.__fit_rec(self.root, 0)
 
     def __fit_rec(self, node: ConditionNode, depth):
-        if self.max_depth and depth >= self.max_depth:
-            return
-        elif len(node.subset_indeces) < self.min_samples_split:
-            return
-        elif len(set(node.get_labels())) == 1:
+        if (depth >= self.max_depth
+           or len(node.subset_indeces) < self.min_samples_split
+           or len(set(node.get_labels())) == 1):
             return
 
         node.generate_condition(imp_func=self.criterion).split()

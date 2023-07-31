@@ -60,7 +60,7 @@ class ConditionNode(object):
         return value
 
     def get_labels(self) -> pd.Series:
-        return self.df_y.iloc[list(self.subset_indeces)]
+        return self.df_y.loc[list(self.subset_indeces)]
     
     def set_df_x(self, df_x: pd.DataFrame):
         self.df_x = df_x
@@ -88,7 +88,7 @@ IG: {self.dot_attr["ig"]}"""
         return f"""Class: {self.calculate_value()}\n{s}"""
     
     def _is_categorical(self, attr_name: str):
-        return self.df_x.dtypes[attr_name] == 'object'
+        return self.df_x.dtypes[attr_name] == np.int64 and self.df_x[attr_name].nunique() < 20
 
 class AbstractDecisionTree(object, metaclass=ABCMeta):
 

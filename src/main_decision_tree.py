@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # ----------------------
 
     # Oversampling --------
-    print()
+    # print()
     print("Oversampling ----------------------")
     print("Length of training set:", len(df_train))
     pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
@@ -59,16 +59,19 @@ if __name__ == "__main__":
     X_test, y_test = get_X_and_Y(df_test, verbose=VERBOSE)
     # print_dataset(X_train, y_train)
 
-    # TEST ID3
     print()
     print("ID3 --------------------------")
-    X_train["Account"] = X_train["Account"].apply(lambda x: int(str(x), 16))
-    X_test["Account"] = X_test["Account"].apply(lambda x: int(str(x), 16))
-    X_train["Account.1"] = X_train["Account"].apply(lambda x: int(str(x), 16))
-    X_test["Account.1"] = X_test["Account"].apply(lambda x: int(str(x), 16))
+
+    X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    
+    # X_train["Account"] = X_train["Account"].apply(lambda x: int(str(x), 16))
+    # X_test["Account"] = X_test["Account"].apply(lambda x: int(str(x), 16))
+    # X_train["Account.1"] = X_train["Account"].apply(lambda x: int(str(x), 16))
+    # X_test["Account.1"] = X_test["Account"].apply(lambda x: int(str(x), 16))
 
     start_time = time.time()
-    decision_tree: DecisionTreeID3 = DecisionTreeID3(numerical_attr_groups=7)
+    decision_tree: DecisionTreeID3 = DecisionTreeID3(numerical_attr_groups=4)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
 
