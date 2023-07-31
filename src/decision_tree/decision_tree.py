@@ -158,8 +158,6 @@ class CustomConditionNode(ConditionNode):
         return self
     
 
-# DECISION TREE --------------------------------    
-
 class CustomDecisionTree(AbstractDecisionTree):
 
     def __init__(self, criterion, type_criterion=CustomConditionNode.TYPE_CRIT_RANDOM, max_depth=5, min_samples_split=2):

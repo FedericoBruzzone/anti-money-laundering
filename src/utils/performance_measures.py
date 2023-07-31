@@ -1,9 +1,8 @@
-# Calculate accuracy and F1 score
-def calculate_performances(y_pred, y_test, verbose = False):
-    tp = 0
-    tn = 0
-    fp = 0
-    fn = 0
+def calculate_performances(y_pred, y_test, verbose = False) -> (float, float):
+    tp: int = 0
+    tn: int = 0
+    fp: int = 0
+    fn: int = 0
     for i, p in enumerate(y_pred):
         if p == y_test.iloc[i]:
             if p == 1:
@@ -28,3 +27,4 @@ def calculate_performances(y_pred, y_test, verbose = False):
 
 
     return accuracy, f1_score
+

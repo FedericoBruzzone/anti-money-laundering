@@ -61,7 +61,6 @@ class ConditionNodeID3(ConditionNode):
         return self
    
     def _compute_info_gain_categorical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType]:
-        # attr_series : pd.Series = self.df_x[attr_name].loc[list(self.subset_indeces)] 
         info_attr = 0
         tot_instances = len(attr_series)
         
@@ -72,19 +71,16 @@ class ConditionNodeID3(ConditionNode):
         return self._entropy(self.df_y) - info_attr, lambda row: row[attr_name]
 
     def _compute_info_gain_numerical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType]:
-        # attr_series : pd.Series = self.df_x[attr_name]
         info_attr: int = 0
         tot_instances = len(attr_series)
-
+        
         n_groups: int = self.numerical_attr_groups if self.numerical_attr_groups <= attr_series.nunique() else attr_series.nunique()
 
         quantiles_list = attr_series.quantile(np.arange(0, 1, step=1/n_groups) + 1/n_groups, interpolation="nearest")
 
         for value, n_instances in quantiles_list.items():
             mask: pd.Series = attr_series <= value
-            
             info_attr += (n_instances/tot_instances) * self._entropy(self.df_y.loc[list(self.subset_indeces)][mask])
-            # print("VALUE", value, "N_INSTANCES", n_instances, "INFO_ATTR", info_attr)
 
         condition = lambda row: math.floor(stats.percentileofscore(quantiles_list, row[attr_name]) * n_groups / 100) - 1
 
@@ -107,8 +103,8 @@ class ConditionNodeID3(ConditionNode):
             for key in children_indices:
                 self.children.update({key: ConditionNodeID3(parent=self, 
                                                             subset_indeces=set(children_indices[key]), 
-                                                            splitted_attr_names=self.splitted_attr_names)})
-            
+                                                            splitted_attr_names=self.splitted_attr_names,
+                                                            numerical_attr_groups=self.numerical_attr_groups)})
             return self
 
 class DecisionTreeID3(AbstractDecisionTree):
@@ -119,6 +115,7 @@ class DecisionTreeID3(AbstractDecisionTree):
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
         self.root = ConditionNodeID3(value=round(sum(df_y) / len(df_y)), 
                                      subset_indeces=set(df_x.index.tolist()), 
+                                     splitted_attr_names=[],
                                      numerical_attr_groups=self.numerical_attr_groups)
         self.root.set_df_x(df_x)
         self.root.set_df_y(df_y)
@@ -137,9 +134,8 @@ class DecisionTreeID3(AbstractDecisionTree):
         # Test if all labels are equal
         if labels_sum == 0 or labels_sum == len(node.get_labels()):
             return
-        
-        print(len(node.splitted_attr_names), " ---- ", len(node.df_x.columns))
-        
+         
+        print(f"\nThe nodes {node.splitted_attr_names} have been splitted\n")
         node.generate_condition().split()
 
         for nd in node.children.values():
@@ -154,6 +150,6 @@ class DecisionTreeID3(AbstractDecisionTree):
         if node is None or depth == 15:
             return
 
-        print("  "*depth, node.dot_attr["attr_name"])
+        print(" "*depth, node.dot_attr["attr_name"])
         for child in node.children.values():
             self._print_tree_rec(child, depth + 1)

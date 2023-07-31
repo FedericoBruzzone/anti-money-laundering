@@ -105,7 +105,10 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         
     def predict_test(self, X: pd.DataFrame):
         for i in range(len(X)):
-            yield self.predict(X.iloc[i])
+            try:
+                yield self.predict(X.iloc[i])
+            except:
+                pass
 
     def __predict_rec(self, x: pd.Series, node: ConditionNode):
         val = None
@@ -138,30 +141,25 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
 
         dot_str += traverse(self.root, "")
         dot_str += "}\n"
-        # print(dot_str)
         return dot_str
     
-    def create_dot_files(self, filename: str = "tree.dot", generate_png:bool = False, view: bool = ""):
-        str_dot = self.str_dot()
-
-        with open(filename, "w") as f:
+    def create_dot_files(self, filename: str = "tree", generate_png:bool = False, view: bool = ""):
+        str_dot: str = self.str_dot()
+        
+        filename_dot: str = f"{filename}.dot"
+        with open(filename_dot, "w") as f:
             f.write(str_dot)
 
         import subprocess
         if generate_png:
-            command: str = f"dot -Tpng {filename} -o tree.png"
+            command: str = f"dot -Tpng {filename}.dot -o {filename}.png"
             subprocess.run(command, shell=True, check=True) 
         match view:
             case "code":
-                command: str = "code tree.png"
+                command: str = f"code {filename}.png"
             case "default-viewer":
-                command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
+                command: str = f"nohup xdg-open '{filename}.png' >/dev/null 2>&1 &"
         subprocess.run(command, shell=True, check=True)
-        # if view:
-        #     # command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
-        #     # subprocess.run(command, shell=True, check=True) 
-
-        #     subprocess.run("code tree.png", shell=True, check=True) 
 
     def __str__(self) -> str:
         return ""

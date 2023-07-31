@@ -39,9 +39,10 @@ if __name__ == "__main__":
     # df_train = pd.concat([is_laundering, is_not_laundering],axis=0)
     # print("Undersampled df len: ", len(df_train))
     # ----------------------
-
-    # Oversampling --------
-    # print()
+    
+    # OVERSAMPLING
+    # ----------------------------------------------------------------------------
+    print()
     print("Oversampling ----------------------")
     print("Length of training set:", len(df_train))
     pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
@@ -53,85 +54,50 @@ if __name__ == "__main__":
     
     print("Length of training set after oversampling:", len(df_train))
     print("End oversampling ----------------------")
-    # ----------------------
+    # ----------------------------------------------------------------------------
 
+
+    # SETTING UP DATASET
+    # ----------------------------------------------------------------------------
     X_train, y_train = get_X_and_Y(df_train, verbose=VERBOSE)
     X_test, y_test = get_X_and_Y(df_test, verbose=VERBOSE)
     # print_dataset(X_train, y_train)
-
-    print()
-    print("ID3 --------------------------")
-
     X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    
-    # X_train["Account"] = X_train["Account"].apply(lambda x: int(str(x), 16))
-    # X_test["Account"] = X_test["Account"].apply(lambda x: int(str(x), 16))
-    # X_train["Account.1"] = X_train["Account"].apply(lambda x: int(str(x), 16))
-    # X_test["Account.1"] = X_test["Account"].apply(lambda x: int(str(x), 16))
+    # ----------------------------------------------------------------------------
 
+    # ID3
+    # ----------------------------------------------------------------------------
+    print()
+    print("ID3 --------------------------")    
     start_time = time.time()
-    decision_tree: DecisionTreeID3 = DecisionTreeID3(numerical_attr_groups=4)
+    decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10, numerical_attr_groups=3)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
-
-    decision_tree.create_dot_files(generate_png=True, view=VIEW)
-
-    # tp, tn, fp, fn = 0, 0, 0, 0
-    # try:
-    #     for index, row in X_test.iterrows():
-    #         pred = decision_tree.predict(row)
-    #         if pred == y_test[index]:
-    #             if pred:
-    #                 tp += 1
-    #             else:
-    #                 tn += 1
-    #         else:
-    #             if pred:
-    #                 fp += 1
-    #             else:
-    #                 fn += 1
-    # except:
-    #     pass
-
-    # print("TP:", tp, "TN:", tn, "FP:", fp, "FN:", fn)
-
-    # accuracy_id3 = (tp+tn)/len(y_test)
-    # f1_score_id3 = (2*tp)/(2*tp+fp+fn)
-
-    # print("Accuracy:", accuracy_id3)
-    # print("F_1 score:", f1_score_id3)
-
+    decision_tree.create_dot_files(filename="tree-id3", generate_png=True, view=VIEW)
     print()
     print("Performances --------------------------")
     predictions = list(decision_tree.predict_test(X_test))
     print(f"Fit time: {end_time - start_time} seconds") 
     accuracy, f1_score = p_measures.calculate_performances(predictions, y_test, verbose=True)
     print("END ID3 --------------------------")
-
+    # ----------------------------------------------------------------------------
+   
     assert(False)
 
-
-    ##############################
-    
+    # CUSTOM
+    # ----------------------------------------------------------------------------
     print()
     print("CUSTOM --------------------------")
-    X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-
     performances_accuracy = []
     performances_F1_score = []
 
     n_iter = 1
 
     for i in range(n_iter):
-        
-        print("Iteration:", i)
-    
         decision_tree = CustomDecisionTree(criterion=0, type_criterion=0, max_depth=10)
         decision_tree.fit(X_train, y_train)
-        print(decision_tree)
-        decision_tree.create_dot_files(generate_png=True, view="open")
+        decision_tree.create_dot_files(filename="tree-custom", generate_png=True, view="open")
 
         predictions = list(decision_tree.predict_test(X_test))
         
@@ -148,6 +114,9 @@ if __name__ == "__main__":
 
     # print(type(X_train.iloc[0].values)) # <class 'numpy.ndarray'>
     # print(X_train.iloc[0]["Timestamp"])
+    
+    print("END CUSTOM --------------------------")
+    # ----------------------------------------------------------------------------
 
     assert(False)
     
