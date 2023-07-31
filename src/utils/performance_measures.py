@@ -16,12 +16,15 @@ def calculate_performances(y_pred, y_test, verbose = False):
             else:
                 fn += 1
 
-    if verbose :
-        print(f"TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}")
-        print("TP+TN:", tp+tn)
-        print("Length of test set:", len(y_test))
-
     accuracy = (tp+tn)/len(y_test)
     f1_score = (2*tp)/(2*tp+fp+fn)
+
+    if verbose :
+        print(f"TP: {tp}, TN: {tn}, FP: {fp}, FN: {fn}")
+        print("Accuracy:", accuracy)
+        print("F1 score:", f1_score)
+        # print("TP+TN:", tp+tn)
+        # print("Length of test set:", len(y_test))
+
 
     return accuracy, f1_score

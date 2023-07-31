@@ -18,11 +18,11 @@ class ConditionNode(object):
         if parent:
             self.df_x: pd.DataFrame = parent.df_x
             self.df_y: pd.DataFrame = parent.df_y
-        self.condition: FunctionType       = condition
+        self.condition: FunctionType            = condition
         self.children: dict[Any, ConditionNode] = children
-        self.parent: ConditionNode         = parent
-        self.subset_indeces: set[int]      = subset_indeces
-        self.value: int                    = self.calculate_value() if value is None else value
+        self.parent: ConditionNode              = parent
+        self.subset_indeces: set[int]           = subset_indeces
+        self.value: int                         = self.calculate_value() if value is None else value
         self.dot_attr: collections.defaultdict[str, Any] = collections.defaultdict(str)
     
     @abstractmethod
@@ -30,7 +30,6 @@ class ConditionNode(object):
     
     @abstractmethod
     def split(self): pass
-    
     
     def _gini_impurity(self, y: pd.Series) -> float:
         if isinstance(y, pd.Series):
@@ -52,9 +51,7 @@ class ConditionNode(object):
     def calculate_value(self):
         if len(self.subset_indeces) == 0:
             return 0
-
-        # value = round(sum(self.df_y.loc[list(self.subset_indeces)]) / len(self.subset_indeces))
-
+        
         value = round(sum(self.df_y.filter(list(self.subset_indeces))) / len(self.subset_indeces))
 
         assert len(self.df_y.filter(list(self.subset_indeces))) == len(self.subset_indeces)
@@ -98,6 +95,7 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
     def __init__(self, max_depth=None, min_samples_split=2):
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
+        self.root: ConditionNode = None
 
     @abstractmethod
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame): pass
@@ -121,8 +119,6 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
                 val = self.__predict_rec(x, node.children[branch])
         return val
     
-    # VISUAL REPRESENTATION
-
     def str_dot(self) -> str:
         dot_str: str = "digraph DecisionTree {\n"
         dot_str += "\trankdir=TD;\n"
@@ -145,8 +141,7 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         # print(dot_str)
         return dot_str
     
-    def create_dot_files(self, filename: str = "tree.dot", generate_png:bool = False, view: bool = False):
-
+    def create_dot_files(self, filename: str = "tree.dot", generate_png:bool = False, view: bool = ""):
         str_dot = self.str_dot()
 
         with open(filename, "w") as f:
@@ -156,11 +151,17 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         if generate_png:
             command: str = f"dot -Tpng {filename} -o tree.png"
             subprocess.run(command, shell=True, check=True) 
-        if view:
-            # command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
-            # subprocess.run(command, shell=True, check=True) 
+        match view:
+            case "code":
+                command: str = "code tree.png"
+            case "default-viewer":
+                command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
+        subprocess.run(command, shell=True, check=True)
+        # if view:
+        #     # command: str = "nohup xdg-open 'tree.png' >/dev/null 2>&1 &"
+        #     # subprocess.run(command, shell=True, check=True) 
 
-            subprocess.run("code tree.png", shell=True, check=True) 
+        #     subprocess.run("code tree.png", shell=True, check=True) 
 
     def __str__(self) -> str:
         return ""

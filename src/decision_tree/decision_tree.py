@@ -86,6 +86,7 @@ class CustomConditionNode(ConditionNode):
 
             attr_series: pd.Series = self.df_x[attr_name]
             is_categorical = self.df_x.dtypes[attr_name] == np.int64 and attr_series.nunique() < 20
+            
 
             if is_categorical:
                 possible_values: list[int] = attr_series.unique() 
