@@ -1,3 +1,4 @@
+import time
 import math
 import pandas as pd
 import numpy as np
@@ -90,6 +91,7 @@ class ConditionNodeID3(ConditionNode):
         if self.condition is None:
             raise Exception("Condition is None")
         else:
+            st = time.time()
             df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
 
             children_indices = {}
@@ -105,13 +107,18 @@ class ConditionNodeID3(ConditionNode):
                                                             subset_indeces=set(children_indices[key]), 
                                                             splitted_attr_names=self.splitted_attr_names,
                                                             numerical_attr_groups=self.numerical_attr_groups)})
+            et = time.time()
+            print("SPLIT TIME: ", et - st)
             return self
 
 class DecisionTreeID3(AbstractDecisionTree):
     def __init__(self, max_depth: int = 5, numerical_attr_groups: int = 1):
         super().__init__(max_depth=max_depth)
         self.numerical_attr_groups: int = numerical_attr_groups
-    
+
+        print("MAX DEPTH:", self.max_depth)
+        print("NUMERICAL ATTR GROUPS:", self.numerical_attr_groups)
+
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
         self.root = ConditionNodeID3(value=round(sum(df_y) / len(df_y)), 
                                      subset_indeces=set(df_x.index.tolist()), 
@@ -119,7 +126,7 @@ class DecisionTreeID3(AbstractDecisionTree):
                                      numerical_attr_groups=self.numerical_attr_groups)
         self.root.set_df_x(df_x)
         self.root.set_df_y(df_y)
-             
+        
         self._fit_rec(self.root, 0)
 
     def _fit_rec(self, node: ConditionNodeID3, depth: int):
@@ -129,12 +136,6 @@ class DecisionTreeID3(AbstractDecisionTree):
             or len(node.splitted_attr_names) == len(node.df_x.columns)):
             return
             
-        labels_sum = sum(node.get_labels())
-
-        # Test if all labels are equal
-        if labels_sum == 0 or labels_sum == len(node.get_labels()):
-            return
-         
         print(f"\nThe nodes {node.splitted_attr_names} have been splitted\n")
         node.generate_condition().split()
 

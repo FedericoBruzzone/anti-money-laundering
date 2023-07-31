@@ -65,13 +65,13 @@ if __name__ == "__main__":
     X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     # ----------------------------------------------------------------------------
-
+    
     # ID3
     # ----------------------------------------------------------------------------
     print()
     print("ID3 --------------------------")    
     start_time = time.time()
-    decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10, numerical_attr_groups=3)
+    decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=5, numerical_attr_groups=3)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
     decision_tree.create_dot_files(filename="tree-id3", generate_png=True, view=VIEW)
@@ -82,39 +82,21 @@ if __name__ == "__main__":
     accuracy, f1_score = p_measures.calculate_performances(predictions, y_test, verbose=True)
     print("END ID3 --------------------------")
     # ----------------------------------------------------------------------------
-   
-    assert(False)
 
     # CUSTOM
     # ----------------------------------------------------------------------------
     print()
     print("CUSTOM --------------------------")
-    performances_accuracy = []
-    performances_F1_score = []
-
-    n_iter = 1
-
-    for i in range(n_iter):
-        decision_tree = CustomDecisionTree(criterion=0, type_criterion=0, max_depth=10)
-        decision_tree.fit(X_train, y_train)
-        decision_tree.create_dot_files(filename="tree-custom", generate_png=True, view="open")
-
-        predictions = list(decision_tree.predict_test(X_test))
-        
-        accuracy, f1_score = p_measures.calculate_performances(predictions, y_test)
-        
-        print("Accuracy:", accuracy)
-        print("F_1 score:", f1_score)
-
-        performances_accuracy.append(accuracy)
-        performances_F1_score.append(f1_score)
-    
-    # print("\n\nAverage accuracy:", sum(performances_accuracy)/n_iter)
-    # print("Average F_1 score:", sum(performances_F1_score)/n_iter)
-
-    # print(type(X_train.iloc[0].values)) # <class 'numpy.ndarray'>
-    # print(X_train.iloc[0]["Timestamp"])
-    
+    start_time = time.time()
+    decision_tree = CustomDecisionTree(criterion=0, type_criterion=1, max_depth=5, min_samples_split=20)
+    decision_tree.fit(X_train, y_train)
+    end_time = time.time()
+    decision_tree.create_dot_files(filename="tree-custom", generate_png=True, view=VIEW)
+    print()
+    print("Performances --------------------------")
+    predictions = list(decision_tree.predict_test(X_test))
+    print(f"Fit time: {end_time - start_time} seconds")
+    accuracy, f1_score = p_measures.calculate_performances(predictions, y_test, verbose=True)
     print("END CUSTOM --------------------------")
     # ----------------------------------------------------------------------------
 
