@@ -58,7 +58,7 @@ class ConditionNodeID3(ConditionNode):
 
         self.condition = max_condition
         self.splitted_attr_names.append(max_info_gain_attr_name)
-        self.set_dot_attr(max_info_gain_attr_name, condition_value, float(max_info_gain), max_is_categorical) # TODO: fix the " " in ancestor
+        self.set_dot_attr(max_info_gain_attr_name, condition_value , float(max_info_gain), max_is_categorical) # TODO: fix the " " in ancestor
         return self
    
     def _compute_info_gain_categorical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType, pd.Series]:
@@ -67,9 +67,9 @@ class ConditionNodeID3(ConditionNode):
         
         for value, n_instances in attr_series.value_counts().items():
             mask: pd.Series = attr_series == value
-            info_attr += (n_instances/tot_instances) * self._entropy(self.df_y.loc[list(self.subset_indeces)][mask])
+            info_attr += (n_instances/tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
         
-        return self._entropy(self.df_y) - info_attr, lambda row: row[attr_name], attr_series.unique()
+        return self._shannon_entropy(self.df_y) - info_attr, lambda row: row[attr_name], attr_series.unique()
 
     def _compute_info_gain_numerical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType, pd.Series]:
         info_attr: int = 0
@@ -81,11 +81,11 @@ class ConditionNodeID3(ConditionNode):
 
         for value, n_instances in quantiles_list.items():
             mask: pd.Series = attr_series <= value
-            info_attr += (n_instances/tot_instances) * self._entropy(self.df_y.loc[list(self.subset_indeces)][mask])
+            info_attr += (n_instances/tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
 
         condition = lambda row: math.floor(stats.percentileofscore(quantiles_list, row[attr_name]) * n_groups / 100) - 1
 
-        return self._entropy(self.df_y) - info_attr, condition, quantiles_list
+        return self._shannon_entropy(self.df_y) - info_attr, condition, quantiles_list.unique()
     
     def split(self):
         if self.condition is None:

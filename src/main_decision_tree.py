@@ -12,21 +12,21 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 from src.kaggle_config               import setup_kaggle
 from src.kaggle_config               import download_dataset
+
 from src.utils.datasets_handler      import get_train_and_test
 from src.utils.datasets_handler      import get_X_and_Y
 from src.utils.datasets_handler      import print_dataset
 from src.utils.datasets_handler      import label_encoder
-from src.decision_tree.decision_tree import CustomDecisionTree
-from src.decision_tree.ID3           import DecisionTreeID3
 from src.utils.performance_measures  import calculate_performances
 from src.utils.plot_measures         import (plot_correlation_matrix,  
                                              plot_numerical_histograms, 
-                                             plot_roc_curve)
-# from src.utils.plot_measures         import plot_confusion_matrix
-# from src.utils.plot_measures         import plot_roc_curve
-# from src.utils.plot_measures         import plot_precision_recall_curve
-# from src.utils.plot_measures         import plot_learning_curve
-# from src.utils.plot_measures         import plot_decision_tree
+                                             plot_roc_curve,
+                                             plot_confusion_matrix)
+
+from src.decision_tree.decision_tree  import CustomDecisionTree
+from src.decision_tree.ID3            import DecisionTreeID3
+from src.decision_tree.entropy_type   import EntropyType
+from src.decision_tree.criterion_type import CriterionType
 
 if __name__ == "__main__":
     VERBOSE = int(os.getenv('VERBOSE'))
@@ -34,10 +34,12 @@ if __name__ == "__main__":
 
     setup_kaggle()
     print("Downloading dataset")
-    download_dataset()
+    download_dataset("uciml/iris")
     print("End downloading dataset")
-
-    df_train, df_test = get_train_and_test("HI-Small_Trans.csv", verbose=VERBOSE)
+    
+    hi_small_trans = "HI-Small_Trans.csv"
+    iris = "Iris.csv"
+    df_train, df_test = get_train_and_test(iris, verbose=VERBOSE)
 
     # Undersampling --------
     # print("df len: ", len(df_train))
@@ -51,7 +53,7 @@ if __name__ == "__main__":
     # OVERSAMPLING
     # ----------------------------------------------------------------------------
     print()
-    print("Oversampling ----------------------")
+    print("---------------------- Oversampling ----------------------")
     # pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
     # if pos_neg_ratio > 0:
     #     print("Length of training set:", len(df_train))
@@ -65,64 +67,78 @@ if __name__ == "__main__":
     #     print("Length of training set after oversampling:", len(df_train))
     # else:
     #     print("Oversampling not needed because positive negative ratio is less than 0")
-    print("End oversampling ----------------------")
+    print("---------------------- End oversampling ----------------------")
     # ----------------------------------------------------------------------------
    
     # SETTING UP DATASET
     # ----------------------------------------------------------------------------
+    print()
+    print("---------------------- Setting up dataset --------------------------")
     X_train, y_train = get_X_and_Y(df_train, verbose=VERBOSE)
     X_test, y_test = get_X_and_Y(df_test, verbose=VERBOSE)
     # print_dataset(X_train, y_train)
-    X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+#    X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+#    X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    
+    # Iris dataset
+    encoder = {'Iris-setosa': 0, 'Iris-versicolor': 1, 'Iris-virginica': 2}
+    y_train = y_train.replace(encoder)
+    y_test = y_test.replace(encoder)
+    y_train[y_train == 2] = 0
+    y_test[y_test == 2] = 0
+    print("---------------------- End setting up dataset --------------------------")
     # ----------------------------------------------------------------------------
 
     # PLOTTING
     # ----------------------------------------------------------------------------
     print()
-    print("Plotting --------------------------")
-    df_train, df_train_label_decoder = label_encoder(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    df_test, df_test_label_decoder = label_encoder(df_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    plot_correlation_matrix(df_train) 
-    plot_numerical_histograms(df_train)
-    print("End plotting --------------------------")
+    print("---------------------- Plotting --------------------------")
+    # df_train, df_train_label_decoder = label_encoder(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    # df_test, df_test_label_decoder = label_encoder(df_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    # plot_correlation_matrix(df_train) 
+    # plot_numerical_histograms(df_train)
+    print("-------------------------- End plotting --------------------------")
     # ----------------------------------------------------------------------------
 
         
     # ID3
     # ----------------------------------------------------------------------------
     print()
-    print("ID3 --------------------------")    
+    print("---------------------- ID3 --------------------------")    
     start_time = time.time()
     decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10, numerical_attr_groups=3)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
     decision_tree.create_dot_files(filename="tree-id3", generate_png=True, view=VIEW)
     print()
-    print("Performances --------------------------")
+    print("Performances: ")
     predictions = list(decision_tree.predict_test(X_test))
     print(f"Fit time: {end_time - start_time} seconds") 
-    accuracy, f1_score = calculate_performances(predictions, y_test, "id3", verbose=True)
-    print("END ID3 --------------------------")
+    calculate_performances(predictions, y_test, "id3", verbose=True)
+    print("-------------------------- END ID3 --------------------------")
     # ----------------------------------------------------------------------------
 
     # CUSTOM
     # ----------------------------------------------------------------------------
     print()
-    print("CUSTOM --------------------------")
+    print("-------------------------- CUSTOM --------------------------")
     start_time = time.time()
-    decision_tree = CustomDecisionTree(criterion=0, type_criterion=1, max_depth=10, min_samples_split=2)
+    decision_tree = CustomDecisionTree(criterion=EntropyType.SHANNON, 
+                                       type_criterion=CriterionType.BEST, 
+                                       max_depth=10, 
+                                       min_samples_split=2,
+                                       num_thresholds=2)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
     decision_tree.create_dot_files(filename="tree-custom", generate_png=True, view=VIEW)
     print()
-    print("Performances --------------------------")
+    print("Performances: ") 
     predictions = list(decision_tree.predict_test(X_test))
     print(f"Fit time: {end_time - start_time} seconds")
-    accuracy, f1_score = calculate_performances(predictions, y_test, "custom", verbose=True)
-    print("END CUSTOM --------------------------")
+    calculate_performances(predictions, y_test, "custom", verbose=True)
+    print("-------------------------- END CUSTOM --------------------------")
     # ----------------------------------------------------------------------------
-
+    
     assert(False)
     
     print()

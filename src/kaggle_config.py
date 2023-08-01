@@ -19,9 +19,9 @@ def download_dataset(dataset_name="", path='datasets/', unzip=True):
     
     kaggle_dataset = os.path.join(os.getcwd(), "datasets")
 
-    if (not os.path.exists(kaggle_dataset)):
+    if (not os.path.exists(kaggle_dataset + "/" + dataset_name)):
         if dataset_name == "":
-            dataset_name = 'ealtman2019/ibm-transactions-for-anti-money-laundering-aml' 
+            dataset_name = os.getenv("KAGGLE_DATASET_LINK") 
 
         kaggle_api = KaggleApi()
         kaggle_api.authenticate()

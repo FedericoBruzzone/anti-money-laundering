@@ -40,34 +40,40 @@ def accuracy(y_pred, y_test) -> float:
 
 def precision(y_pred, y_test) -> float:
     tp, _, fp, _ = confusion_matrix(y_pred, y_test)
+    if tp + fp == 0:
+        return 0
     return tp / (tp + fp)
 
 def recall(y_pred, y_test) -> float:
     tp, _, _, fn = confusion_matrix(y_pred, y_test)
+    if tp + fn == 0:
+        return 0
     return tp / (tp + fn)
 
 def f1_score(y_pred, y_test) -> float:
     p = precision(y_pred, y_test) 
     r = recall(y_pred, y_test)
+    if p + r == 0:
+        return 0
     return 2 * (p * r) / (p + r)
 
 def calculate_performances(y_pred, y_test, model_name, verbose = False) -> (float, float):
     tp, tn, fp, fn = confusion_matrix(y_pred, y_test)
     acc            = accuracy(y_pred, y_test)
     f1_s           = f1_score(y_pred, y_test)
-    tpr            = tp/(tp+fn)
-    fpr            = fp/(fp+tn)
+    tpr            = tp/(tp+fn) if (tp+fn) != 0 else 0
+    fpr            = fp/(fp+tn) if (fp+tn) != 0 else 0
 
     tpr_list, fpr_list = roc_curve(y_pred, y_test)
     cm = np.array([[tp, fp], [fn, tn]])
     classes = ['0', '1']
 
     if verbose :
-        print("Precision:", precision(y_pred, y_test))
-        print("Recall:", recall(y_pred, y_test))
         print("F1 score:", f1_s)
         print("Accuracy:", acc)
-        print("----------------------------------")
+        print("Precision:", precision(y_pred, y_test))
+        print("Recall:", recall(y_pred, y_test))
+        
         print("True positive: ", tp)
         print("True negative: ", tn)
         print("False positive: ", fp)

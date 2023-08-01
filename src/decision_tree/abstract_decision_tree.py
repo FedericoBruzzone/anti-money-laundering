@@ -31,7 +31,7 @@ class ConditionNode(object):
     @abstractmethod
     def split(self): pass
     
-    def _gini_impurity(self, y: pd.Series) -> float:
+    def _gini_entropy(self, y: pd.Series) -> float:
         if isinstance(y, pd.Series):
             prob: float = y.value_counts() / y.shape[0]
             gini: float = 1 - np.sum(prob ** 2)
@@ -39,24 +39,32 @@ class ConditionNode(object):
         else:
             raise Exception("y must be a pandas Series")
     
-    def _entropy(self, y: pd.Series) -> float:
+    def _scaled_entropy(self, y: pd.Series) -> float:
         if isinstance(y, pd.Series):
             prob: float    = y.value_counts() / y.shape[0]
             e: float       = 1e-9
-            entropy: float = np.sum(-prob * np.log2(prob+e))
+            entropy: float = -np.sum(prob/2 * np.log2(prob+e))
             return entropy
         else:
             raise Exception("y must be a pandas Series")
+
+    def _shannon_entropy(self, y: pd.Series) -> float:
+        if isinstance(y, pd.Series):
+            prob: float    = y.value_counts() / y.shape[0]
+            e: float       = 1e-9
+            entropy: float = -np.sum(prob * np.log2(prob+e))
+            return entropy
+        else:
+            raise Exception("y must be a pandas Series")
+
     
     def calculate_value(self):
         if len(self.subset_indeces) == 0:
             return 0
         
         value = round(sum(self.df_y.filter(list(self.subset_indeces))) / len(self.subset_indeces))
-
         assert len(self.df_y.filter(list(self.subset_indeces))) == len(self.subset_indeces)
         assert value == 0 or value == 1
-
         return value
 
     def get_labels(self) -> pd.Series:
@@ -109,13 +117,14 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
                 yield self.predict(X.iloc[i])
             except:
                 pass
-
+    
     def __predict_rec(self, x: pd.Series, node: ConditionNode):
         val = None
         if node.is_leaf():
             val = node.value
         else:
             branch: int = node.condition(x)
+            branch = 1 if branch == False else 0
             if node.children[branch] is None:
                 val = node.value
             else:
