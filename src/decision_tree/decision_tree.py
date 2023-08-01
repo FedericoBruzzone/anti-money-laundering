@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import pandas as pd
 import random
@@ -42,7 +43,7 @@ class CustomConditionNode(ConditionNode):
             dx_indices: set = set(df_filtered.index.tolist()) - sx_indices        
             sx_node = CustomConditionNode(parent=self, subset_indeces=sx_indices)
             dx_node = CustomConditionNode(parent=self, subset_indeces=dx_indices)
-            self.children = {0 : sx_node, 1 : dx_node}
+            self.children = {0: sx_node, 1: dx_node}
 
     def _information_gain(self, attr_series: pd.Series,
                                 test_value: float,
@@ -61,10 +62,12 @@ class CustomConditionNode(ConditionNode):
     def _generate_attribute_best(self, imp_func=IMP_FUNC_ENTROPY):
         max_info_gain: float         = -1
         max_info_gain_attr_name: str = None
+        max_val: float               = None
+        max_is_categorical: bool     = False
 
         for attr_name in self.df_x.columns:
-            attr_series: pd.Series = self.df_x[attr_name]
-            is_categorical = self.df_x.dtypes[attr_name] == np.int64 and attr_series.nunique() < 20
+            attr_series: pd.Series = self.df_x[attr_name].loc[list(self.subset_indeces)]
+            is_categorical = self._is_categorical(attr_name) 
             
             if is_categorical:
                 possible_values: list[int] = attr_series.unique() 
@@ -72,25 +75,29 @@ class CustomConditionNode(ConditionNode):
                 n_groups: int = 4
                 possible_values: list[float] = attr_series.quantile(np.arange(0, 1, step=1/n_groups) + 1/n_groups).values
             
-            best_val: float = -1.0
-            best_ig: float  = -1.0
+            local_max_val: float = -1.0
+            local_max_ig: float  = -1.0
 
             for value in possible_values:
-                information_gain: float = self._information_gain(attr_series, value, imp_func)
-                if information_gain > best_ig:
-                    best_ig = information_gain
-                    best_val = value
+                information_gain: float = self._information_gain(attr_series, value, is_categorical, imp_func)
+                if information_gain > local_max_ig:
+                    local_max_ig = information_gain
+                    local_max_val = value
             
-            if best_ig > max_info_gain:
-                max_info_gain = best_ig
+            if local_max_ig > max_info_gain:
+                max_info_gain           = local_max_ig
+                max_val                 = local_max_val
                 max_info_gain_attr_name = attr_name
+                max_is_categorical      = is_categorical
         
-        if is_categorical(max_info_gain_attr_name):
-            self.condition: LambdaType = lambda row: row[max_info_gain_attr_name] == best_val
+        if self._is_categorical(max_info_gain_attr_name):
+            self.condition: LambdaType = lambda row: row[max_info_gain_attr_name] == max_val
         else:
-            self.condition: LambdaType = lambda row: row[max_info_gain_attr_name] <= best_val
+            self.condition: LambdaType = lambda row: row[max_info_gain_attr_name] <= max_val
+
+        print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain)
         
-        self.set_dot_attr(attr_name, best_val, best_ig, is_categorical)
+        self.set_dot_attr(max_info_gain_attr_name, max_val, max_info_gain, max_is_categorical)
         
     def _generate_attribute_random(self, imp_func: int = IMP_FUNC_ENTROPY) -> FunctionType:
         """
@@ -112,7 +119,7 @@ class CustomConditionNode(ConditionNode):
         max_val: float = -1.0
         max_ig: float  = -1.0
         for value in possible_values:
-            information_gain: float = self._information_gain(attr_series, value, imp_func)
+            information_gain: float = self._information_gain(attr_series, value, is_categorical, imp_func)
             if information_gain > max_ig:
                 max_ig = information_gain
                 max_val = value
@@ -121,7 +128,9 @@ class CustomConditionNode(ConditionNode):
             self.condition: LambdaType = lambda row: row[attr_name] == max_val
         else:
             self.condition: LambdaType = lambda row: row[attr_name] <= max_val
-        
+       
+        print("SPLIT ON", attr_name, "WITH IG =", max_ig)
+
         self.set_dot_attr(attr_name, max_val, max_ig, is_categorical)
 
     def generate_condition(self, type_criterion: int = 0, imp_func: int = 0) -> FunctionType:
@@ -146,13 +155,15 @@ class CustomDecisionTree(AbstractDecisionTree):
         criterion: 0 = entropy, 1 = gini
         type_criterion: 0 = random, 1 = best
         """
-        self.criterion = criterion
-        self.type_criterion = type_criterion
-
-        print("CRITERION: " + ("Entropy" if self.criterion == 0 else "Gini"))
-        print("TYPE CRITERION: " + ("Random" if self.type_criterion == 0 else "Best"))
-        print("MAX DEPTH: " + str(self.max_depth))
-        print("MIN SAMPLES SPLIT: " + str(self.min_samples_split))
+        self.criterion: int     = criterion
+        self.type_criterion:int = type_criterion
+        
+        print("PARAMETERS:")
+        print("\tCRITERION: " + ("Entropy" if self.criterion == 0 else "Gini"))
+        print("\tTYPE CRITERION: " + ("Random" if self.type_criterion == 0 else "Best"))
+        print("\tMAX DEPTH: " + str(self.max_depth))
+        print("\tMIN SAMPLES SPLIT: " + str(self.min_samples_split))
+        print()
     
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
         self.root: ConditionNode = CustomConditionNode(value=round(sum(df_y) / len(df_y)), 
@@ -167,8 +178,8 @@ class CustomDecisionTree(AbstractDecisionTree):
             or len(node.subset_indeces) < self.min_samples_split
             or len(set(node.get_labels())) == 1):
             return
-
-        node.generate_condition(imp_func=self.criterion).split()
+        
+        node.generate_condition(type_criterion=self.type_criterion, imp_func=self.criterion).split()
         self.__fit_rec(node.children[0], depth + 1)
         self.__fit_rec(node.children[1], depth + 1)
 
