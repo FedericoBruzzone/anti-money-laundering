@@ -9,4 +9,11 @@ def print_goodbye():
 def plot_first_graph():
     plt.plot([1, 2, 3, 4])
     plt.ylabel('some numbers')
-    plt.show()
+    
+    if plt.get_backend().lower() == 'module://ipykernel.pylab.backend_inline':
+        plt.show()
+    else:
+        plt.savefig("plt_figs/mygraph.png")
+        plt.close()
+
+plot_first_graph()

@@ -20,14 +20,8 @@ from src.decision_tree.decision_tree import CustomDecisionTree
 from src.decision_tree.ID3           import DecisionTreeID3
 from src.utils.performance_measures  import calculate_performances
 from src.utils.plot_measures         import (plot_correlation_matrix,  
-                                             plot_categorical_histograms, 
                                              plot_numerical_histograms, 
-                                             plot_categorical_scatterplots, 
-                                             plot_numerical_scatterplots, 
-                                             plot_categorical_boxplots, 
-                                             plot_numerical_boxplots, 
-                                             plot_categorical_distribution, 
-                                             plot_numerical_distribution)
+                                             plot_roc_curve)
 # from src.utils.plot_measures         import plot_confusion_matrix
 # from src.utils.plot_measures         import plot_roc_curve
 # from src.utils.plot_measures         import plot_precision_recall_curve
@@ -58,33 +52,22 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------
     print()
     print("Oversampling ----------------------")
-    print("Length of training set:", len(df_train))
-    OVERSAMPLING_RATIO = 0.2
-    pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
-    print("Positive negative ratio", pos_neg_ratio)
+    # pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
+    # if pos_neg_ratio > 0:
+    #     print("Length of training set:", len(df_train))
+    #     OVERSAMPLING_RATIO = 0.2
+    #     print("Positive negative ratio", pos_neg_ratio)
 
-    while 1 - pos_neg_ratio > OVERSAMPLING_RATIO:
-        df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]], ignore_index=True)
-        pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
-    
-    print("Length of training set after oversampling:", len(df_train))
+    #     while 1 - pos_neg_ratio > OVERSAMPLING_RATIO:
+    #         df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]], ignore_index=True)
+    #         pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
+        
+    #     print("Length of training set after oversampling:", len(df_train))
+    # else:
+    #     print("Oversampling not needed because positive negative ratio is less than 0")
     print("End oversampling ----------------------")
     # ----------------------------------------------------------------------------
-    
-    # PLOTTING
-    # ----------------------------------------------------------------------------
-    plot_correlation_matrix(df_train) 
-    plot_categorical_histograms(df_train)
-    plot_numerical_histograms(df_train)
-    plot_categorical_scatterplots(df_train)
-    plot_numerical_scatterplots(df_train)
-    plot_categorical_boxplots(df_train)
-    plot_numerical_boxplots(df_train)
-    # plot_categorical_distribution(df_train)
-    plot_numerical_distribution(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    # ----------------------------------------------------------------------------
-
-
+   
     # SETTING UP DATASET
     # ----------------------------------------------------------------------------
     X_train, y_train = get_X_and_Y(df_train, verbose=VERBOSE)
@@ -93,21 +76,33 @@ if __name__ == "__main__":
     X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     # ----------------------------------------------------------------------------
-    
+
+    # PLOTTING
+    # ----------------------------------------------------------------------------
+    print()
+    print("Plotting --------------------------")
+    df_train, df_train_label_decoder = label_encoder(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    df_test, df_test_label_decoder = label_encoder(df_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    plot_correlation_matrix(df_train) 
+    plot_numerical_histograms(df_train)
+    print("End plotting --------------------------")
+    # ----------------------------------------------------------------------------
+
+        
     # ID3
     # ----------------------------------------------------------------------------
     print()
     print("ID3 --------------------------")    
-    # start_time = time.time()
-    # decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=6, numerical_attr_groups=4)
-    # decision_tree.fit(X_train, y_train)
-    # end_time = time.time()
-    # decision_tree.create_dot_files(filename="tree-id3", generate_png=True, view=VIEW)
-    # print()
-    # print("Performances --------------------------")
-    # predictions = list(decision_tree.predict_test(X_test))
-    # print(f"Fit time: {end_time - start_time} seconds") 
-    # accuracy, f1_score = calculate_performances(predictions, y_test, verbose=True)
+    start_time = time.time()
+    decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10, numerical_attr_groups=3)
+    decision_tree.fit(X_train, y_train)
+    end_time = time.time()
+    decision_tree.create_dot_files(filename="tree-id3", generate_png=True, view=VIEW)
+    print()
+    print("Performances --------------------------")
+    predictions = list(decision_tree.predict_test(X_test))
+    print(f"Fit time: {end_time - start_time} seconds") 
+    accuracy, f1_score = calculate_performances(predictions, y_test, "id3", verbose=True)
     print("END ID3 --------------------------")
     # ----------------------------------------------------------------------------
 
@@ -115,16 +110,16 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------
     print()
     print("CUSTOM --------------------------")
-    # start_time = time.time()
-    # decision_tree = CustomDecisionTree(criterion=0, type_criterion=1, max_depth=6, min_samples_split=2)
-    # decision_tree.fit(X_train, y_train)
-    # end_time = time.time()
-    # decision_tree.create_dot_files(filename="tree-custom", generate_png=True, view=VIEW)
-    # print()
-    # print("Performances --------------------------")
-    # predictions = list(decision_tree.predict_test(X_test))
-    # print(f"Fit time: {end_time - start_time} seconds")
-    # accuracy, f1_score = calculate_performances(predictions, y_test, verbose=True)
+    start_time = time.time()
+    decision_tree = CustomDecisionTree(criterion=0, type_criterion=1, max_depth=10, min_samples_split=2)
+    decision_tree.fit(X_train, y_train)
+    end_time = time.time()
+    decision_tree.create_dot_files(filename="tree-custom", generate_png=True, view=VIEW)
+    print()
+    print("Performances --------------------------")
+    predictions = list(decision_tree.predict_test(X_test))
+    print(f"Fit time: {end_time - start_time} seconds")
+    accuracy, f1_score = calculate_performances(predictions, y_test, "custom", verbose=True)
     print("END CUSTOM --------------------------")
     # ----------------------------------------------------------------------------
 

@@ -146,19 +146,19 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
     def create_dot_files(self, filename: str = "tree", generate_png:bool = False, view: bool = ""):
         str_dot: str = self.str_dot()
         
-        filename_dot: str = f"{filename}.dot"
+        filename_dot: str = f"dot_figs/{filename}.dot"
         with open(filename_dot, "w") as f:
             f.write(str_dot)
 
         import subprocess
         if generate_png:
-            command: str = f"dot -Tpng {filename}.dot -o {filename}.png"
+            command: str = f"dot -Tpng dot_figs/{filename}.dot -o dot_figs/{filename}.png"
             subprocess.run(command, shell=True, check=True) 
         match view:
             case "code":
-                command: str = f"code {filename}.png"
+                command: str = f"code dot_figs/{filename}.png"
             case "default-viewer":
-                command: str = f"nohup xdg-open '{filename}.png' >/dev/null 2>&1 &"
+                command: str = f"nohup xdg-open 'dot_figs/{filename}.png' >/dev/null 2>&1 &"
         subprocess.run(command, shell=True, check=True)
 
     def __str__(self) -> str:
