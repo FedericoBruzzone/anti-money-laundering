@@ -77,8 +77,8 @@ if __name__ == "__main__":
     X_train, y_train = get_X_and_Y(df_train, verbose=VERBOSE)
     X_test, y_test = get_X_and_Y(df_test, verbose=VERBOSE)
     # print_dataset(X_train, y_train)
-#    X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-#    X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    # X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    # X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     
     # Iris dataset
     encoder = {'Iris-setosa': 0, 'Iris-versicolor': 1, 'Iris-virginica': 2}

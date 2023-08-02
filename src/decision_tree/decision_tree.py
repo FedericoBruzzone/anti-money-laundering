@@ -34,11 +34,15 @@ class CustomConditionNode(ConditionNode):
             raise Exception("Condition is None")
         else:
             df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
-            sx_indices: set = set(df_filtered.loc[df_filtered.apply(self.condition, axis=1)].index.tolist())
-            dx_indices: set = set(df_filtered.index.tolist()) - sx_indices        
-            sx_node = CustomConditionNode(parent=self, subset_indeces=sx_indices)
-            dx_node = CustomConditionNode(parent=self, subset_indeces=dx_indices)
-            self.children = {0: sx_node, 1: dx_node}
+            # sx_indices: set = set(df_filtered.loc[df_filtered.apply(self.condition, axis=1)].index.tolist())
+            # dx_indices: set = set(df_filtered.index.tolist()) - sx_indices        
+            # sx_node = CustomConditionNode(parent=self, subset_indeces=sx_indices)
+            # dx_node = CustomConditionNode(parent=self, subset_indeces=dx_indices)
+            # self.children = {0: sx_node, 1: dx_node}
+
+            grouped = df_filtered.groupby(df_filtered.apply(self.condition, axis=1))
+            children_indices = {key: group.index.tolist() for key, group in grouped}
+            self.children = {key: CustomConditionNode(parent=self, subset_indeces=children_indices[key]) for key in children_indices} 
 
     def _information_gain(self, attr_series: pd.Series,
                                 test_value: float,
@@ -75,8 +79,8 @@ class CustomConditionNode(ConditionNode):
                 possible_values: list[int] = attr_series.unique() 
             else:
                 n_groups: int = num_thresholds
-                # possible_values: list[float] = attr_series.quantile(np.arange(0, 1, step=1/n_groups) + 1/n_groups).values
-                possible_values: list[float] = attr_series.unique() 
+                possible_values: list[float] = attr_series.quantile(np.arange(0, 1, step=1/n_groups) + 1/n_groups).values
+                # possible_values: list[float] = attr_series.unique() 
                 
             for value in possible_values:
                 information_gain: float = self._information_gain(attr_series, value, is_categorical, imp_func)
@@ -87,9 +91,9 @@ class CustomConditionNode(ConditionNode):
                     max_info_gain_attr_name = attr_name
                     max_is_categorical      = is_categorical
         if max_is_categorical:
-            self.condition: LambdaType = lambda row: row[max_info_gain_attr_name] == max_val
+            self.condition: LambdaType = lambda row: row[max_info_gain_attr_name] == max_val 
         else:
-            self.condition: LambdaType = lambda row: row[max_info_gain_attr_name] <= max_val
+            self.condition: LambdaType = lambda row: 0 if row[max_info_gain_attr_name] <= max_val else 1
 
         print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain)
         

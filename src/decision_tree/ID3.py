@@ -83,7 +83,7 @@ class ConditionNodeID3(ConditionNode):
             mask: pd.Series = attr_series <= value
             info_attr += (n_instances/tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
 
-        condition = lambda row: math.floor(stats.percentileofscore(quantiles_list, row[attr_name]) * n_groups / 100) - 1
+        condition = lambda row: math.floor(stats.percentileofscore(quantiles_list, row[attr_name]) * n_groups / 100) # TODO: check if is correct - 1
 
         return self._shannon_entropy(self.df_y) - info_attr, condition, quantiles_list.unique()
     
@@ -94,7 +94,7 @@ class ConditionNodeID3(ConditionNode):
             df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
 
             grouped = df_filtered.groupby(df_filtered.apply(self.condition, axis=1))
-
+            
             children_indices = {key: group.index.tolist() for key, group in grouped}
             for key in children_indices:
                 self.children.update({key: ConditionNodeID3(parent=self, 

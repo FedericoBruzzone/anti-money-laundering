@@ -124,7 +124,6 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
             val = node.value
         else:
             branch: int = node.condition(x)
-            branch = 1 if branch == False else 0
             if node.children[branch] is None:
                 val = node.value
             else:
