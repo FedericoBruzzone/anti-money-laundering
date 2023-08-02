@@ -39,7 +39,7 @@ if __name__ == "__main__":
     
     hi_small_trans = "HI-Small_Trans.csv"
     iris = "Iris.csv"
-    df_train, df_test = get_train_and_test(iris, verbose=VERBOSE)
+    df_train, df_test = get_train_and_test(hi_small_trans, verbose=VERBOSE)
 
     # Undersampling --------
     # print("df len: ", len(df_train))
@@ -50,6 +50,8 @@ if __name__ == "__main__":
     # print("Undersampled df len: ", len(df_train))
     # ----------------------
     
+
+
     # OVERSAMPLING
     # ----------------------------------------------------------------------------
     print()
@@ -69,7 +71,9 @@ if __name__ == "__main__":
     #     print("Oversampling not needed because positive negative ratio is less than 0")
     print("---------------------- End oversampling ----------------------")
     # ----------------------------------------------------------------------------
-   
+  
+
+
     # SETTING UP DATASET
     # ----------------------------------------------------------------------------
     print()
@@ -77,36 +81,40 @@ if __name__ == "__main__":
     X_train, y_train = get_X_and_Y(df_train, verbose=VERBOSE)
     X_test, y_test = get_X_and_Y(df_test, verbose=VERBOSE)
     # print_dataset(X_train, y_train)
-    # X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    # X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     
     # Iris dataset
-    encoder = {'Iris-setosa': 0, 'Iris-versicolor': 1, 'Iris-virginica': 2}
-    y_train = y_train.replace(encoder)
-    y_test = y_test.replace(encoder)
-    y_train[y_train == 2] = 0
-    y_test[y_test == 2] = 0
+    # encoder = {'Iris-setosa': 0, 'Iris-versicolor': 1, 'Iris-virginica': 2}
+    # y_train = y_train.replace(encoder)
+    # y_test = y_test.replace(encoder)
+    # y_train[y_train == 2] = 0
+    # y_test[y_test == 2] = 0
     print("---------------------- End setting up dataset --------------------------")
     # ----------------------------------------------------------------------------
+
+
 
     # PLOTTING
     # ----------------------------------------------------------------------------
     print()
     print("---------------------- Plotting --------------------------")
-    # df_train, df_train_label_decoder = label_encoder(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    # df_test, df_test_label_decoder = label_encoder(df_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    # plot_correlation_matrix(df_train) 
-    # plot_numerical_histograms(df_train)
+    df_train, df_train_label_decoder = label_encoder(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    df_test, df_test_label_decoder = label_encoder(df_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    plot_correlation_matrix(df_train) 
+    plot_numerical_histograms(df_train)
     print("-------------------------- End plotting --------------------------")
     # ----------------------------------------------------------------------------
+       
 
-        
+
     # ID3
     # ----------------------------------------------------------------------------
     print()
     print("---------------------- ID3 --------------------------")    
     start_time = time.time()
-    decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10, numerical_attr_groups=3)
+    decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10, 
+                                                     num_thresholds_numerical_attr=6)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
     decision_tree.create_dot_files(filename="tree-id3", generate_png=True, view=VIEW)
@@ -118,6 +126,8 @@ if __name__ == "__main__":
     print("-------------------------- END ID3 --------------------------")
     # ----------------------------------------------------------------------------
 
+
+
     # CUSTOM
     # ----------------------------------------------------------------------------
     print()
@@ -126,8 +136,8 @@ if __name__ == "__main__":
     decision_tree = CustomDecisionTree(criterion=EntropyType.SHANNON, 
                                        type_criterion=CriterionType.BEST, 
                                        max_depth=10, 
-                                       min_samples_split=2,
-                                       num_thresholds=2)
+                                       min_samples_split=14,
+                                       num_thresholds_numerical_attr=6)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
     decision_tree.create_dot_files(filename="tree-custom", generate_png=True, view=VIEW)

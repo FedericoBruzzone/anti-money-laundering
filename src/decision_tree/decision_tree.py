@@ -22,11 +22,11 @@ class CustomConditionNode(ConditionNode):
         if parent:
             self.df_x: pd.DataFrame = parent.df_x
             self.df_y: pd.DataFrame = parent.df_y
-        self.condition: FunctionType       = condition
+        self.condition: FunctionType            = condition
         self.children: dict[Any, ConditionNode] = children
-        self.parent: ConditionNode         = parent
-        self.subset_indeces: set[int]      = subset_indeces
-        self.value: int                    = self.calculate_value() if value is None else value
+        self.parent: ConditionNode              = parent
+        self.subset_indeces: set[int]           = subset_indeces
+        self.value: int                         = self.calculate_value() if value is None else value
         self.dot_attr: collections.defaultdict[str, Any] = collections.defaultdict(str)
 
     def split(self):
@@ -34,14 +34,9 @@ class CustomConditionNode(ConditionNode):
             raise Exception("Condition is None")
         else:
             df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
-            # sx_indices: set = set(df_filtered.loc[df_filtered.apply(self.condition, axis=1)].index.tolist())
-            # dx_indices: set = set(df_filtered.index.tolist()) - sx_indices        
-            # sx_node = CustomConditionNode(parent=self, subset_indeces=sx_indices)
-            # dx_node = CustomConditionNode(parent=self, subset_indeces=dx_indices)
-            # self.children = {0: sx_node, 1: dx_node}
-
             grouped = df_filtered.groupby(df_filtered.apply(self.condition, axis=1))
             children_indices = {key: group.index.tolist() for key, group in grouped}
+            # print("Here4", children_indices)
             self.children = {key: CustomConditionNode(parent=self, subset_indeces=children_indices[key]) for key in children_indices} 
 
     def _information_gain(self, attr_series: pd.Series,
@@ -65,8 +60,8 @@ class CustomConditionNode(ConditionNode):
         return imp_func(self.df_y) - ((a/tot)*entropy_mask + (b/tot)*entropy_not_mask)
    
     def _generate_attribute_best(self, imp_func=EntropyType.SHANNON,
-                                       num_thresholds: int = 4):
-        max_info_gain: float         = -1
+                                       num_thresholds_numerical_attr: int = 2):
+        max_info_gain: float         = np.NINF
         max_info_gain_attr_name: str = None
         max_val: float               = None
         max_is_categorical: bool     = False
@@ -78,10 +73,10 @@ class CustomConditionNode(ConditionNode):
             if is_categorical:
                 possible_values: list[int] = attr_series.unique() 
             else:
-                n_groups: int = num_thresholds
-                possible_values: list[float] = attr_series.quantile(np.arange(0, 1, step=1/n_groups) + 1/n_groups).values
+                n_groups: int = num_thresholds_numerical_attr
+                possible_values: list[float] = attr_series.quantile(np.arange(0, 1, step=1/n_groups)).values
                 # possible_values: list[float] = attr_series.unique() 
-                
+            
             for value in possible_values:
                 information_gain: float = self._information_gain(attr_series, value, is_categorical, imp_func)
                 
@@ -91,7 +86,7 @@ class CustomConditionNode(ConditionNode):
                     max_info_gain_attr_name = attr_name
                     max_is_categorical      = is_categorical
         if max_is_categorical:
-            self.condition: LambdaType = lambda row: row[max_info_gain_attr_name] == max_val 
+            self.condition: LambdaType = lambda row: 0 if row[max_info_gain_attr_name] == max_val else 1
         else:
             self.condition: LambdaType = lambda row: 0 if row[max_info_gain_attr_name] <= max_val else 1
 
@@ -100,32 +95,32 @@ class CustomConditionNode(ConditionNode):
         self.set_dot_attr(max_info_gain_attr_name, max_val, max_info_gain, max_is_categorical)
         
     def _generate_attribute_random(self, imp_func: int = EntropyType.SHANNON, 
-                                         num_thresholds: int = 4):
+                                         num_thresholds_numerical_attr: int = 2):
         index: int             = random.randint(0, len(self.df_x.columns) - 1)
         attr_name: str         = self.df_x.columns[index] # "Payment Currency"
         attr_series: pd.Series = self.df_x[attr_name].loc[list(self.subset_indeces)]
-        is_categorical = self._is_categorical(attr_name)
+        is_categorical         = self._is_categorical(attr_name)
 
         if is_categorical:
             possible_values: list[int] = attr_series.unique() 
         else:
-            n_groups: int = num_thresholds 
-            possible_values: list[float] = attr_series.quantile(np.arange(0, 1, step=1/n_groups) + 1/n_groups).values
+            n_groups: int = num_thresholds_numerical_attr 
+            possible_values: list[float] = attr_series.quantile(np.arange(0, 1, step=1/n_groups)).values
         
         # print(f"Possible values: {possible_values}")
 
-        max_val: float = -1.0
-        max_ig: float  = -1.0
+        max_val: float = np.NINF
+        max_ig: float  = np.NINF
         for value in possible_values:
             information_gain: float = self._information_gain(attr_series, value, is_categorical, imp_func)
             if information_gain > max_ig:
                 max_ig = information_gain
                 max_val = value
-
+        
         if is_categorical:
-            self.condition: LambdaType = lambda row: row[attr_name] == max_val
+            self.condition: LambdaType = lambda row: 0 if row[attr_name] == max_val else 1
         else:
-            self.condition: LambdaType = lambda row: row[attr_name] <= max_val
+            self.condition: LambdaType = lambda row: 0 if row[attr_name] <= max_val else 1     
        
         print("SPLIT ON", attr_name, "WITH IG =", max_ig)
 
@@ -133,27 +128,27 @@ class CustomConditionNode(ConditionNode):
 
     def generate_condition(self, type_criterion: int = CriterionType.RANDOM, 
                                  imp_func: int = EntropyType.SHANNON,
-                                 num_thresholds: int = 4) -> FunctionType:
+                                 num_thresholds_numerical_attr: int = 2) -> FunctionType:
         match type_criterion:
             case CriterionType.RANDOM:
-                self._generate_attribute_random(imp_func, num_thresholds)
+                self._generate_attribute_random(imp_func, num_thresholds_numerical_attr)
             case CriterionType.BEST:
-                self._generate_attribute_best(imp_func, num_thresholds)
+                self._generate_attribute_best(imp_func, num_thresholds_numerical_attr)
             case _:
                 raise ValueError("Invalid type_criterion value")
         return self
     
 
 class CustomDecisionTree(AbstractDecisionTree):
-    def __init__(self, criterion=EntropyType.SHANNON, 
-                       type_criterion=CriterionType.RANDOM, 
-                       max_depth=10, 
-                       min_samples_split=2,
-                       num_thresholds=4):
+    def __init__(self, criterion                     = EntropyType.SHANNON,
+                       type_criterion                = CriterionType.RANDOM,
+                       max_depth                     = 10,
+                       min_samples_split             = 2,
+                       num_thresholds_numerical_attr = 2):
         super().__init__(max_depth=max_depth, min_samples_split=min_samples_split)
         self.criterion: int        = criterion
         self.type_criterion:int    = type_criterion
-        self.num_thresholds: int = num_thresholds
+        self.num_thresholds_numerical_attr: int = num_thresholds_numerical_attr
 
         criterion_str: str = ""
         match self.criterion:
@@ -169,7 +164,7 @@ class CustomDecisionTree(AbstractDecisionTree):
         print("\tTYPE CRITERION: " + ("Random" if self.type_criterion == 0 else "Best"))
         print("\tMAX DEPTH: " + str(self.max_depth))
         print("\tMIN SAMPLES SPLIT: " + str(self.min_samples_split))
-        print("\tNUM THRESHOLDS: " + str(self.num_thresholds))
+        print("\tNUM THRESHOLDS NUMERICAL ATTR: " + str(self.num_thresholds_numerical_attr))
         print()
     
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
@@ -179,6 +174,7 @@ class CustomDecisionTree(AbstractDecisionTree):
         self.root.set_df_y(df_y)
         self.__fit_rec(self.root, 0)
 
+    
     def __fit_rec(self, node: ConditionNode, depth):
         if (depth >= self.max_depth
             or len(node.subset_indeces) < self.min_samples_split
@@ -187,9 +183,13 @@ class CustomDecisionTree(AbstractDecisionTree):
         
         node.generate_condition(type_criterion=self.type_criterion, 
                                 imp_func=self.criterion, 
-                                num_thresholds=self.num_thresholds).split()
+                                num_thresholds_numerical_attr=self.num_thresholds_numerical_attr).split()
+       
+        if len(node.children) <= 1:
+            return
+
         self.__fit_rec(node.children[0], depth + 1)
         self.__fit_rec(node.children[1], depth + 1)
-    
+
     def __str__(self):
         return super().__str__()
