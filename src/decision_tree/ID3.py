@@ -53,7 +53,7 @@ class ConditionNodeID3(ConditionNode):
                 max_info_gain_attr_name = attr_name
                 max_is_categorical = is_categorical
                 max_condition = condition
-
+            
         print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain)
 
         self.condition = max_condition
@@ -69,25 +69,31 @@ class ConditionNodeID3(ConditionNode):
             mask: pd.Series = attr_series == value
             info_attr += (n_instances/tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
         
-        return self._shannon_entropy(self.df_y) - info_attr, lambda row: row[attr_name], attr_series.unique()
+        return self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)]) - info_attr, lambda row: row[attr_name], attr_series.unique()
 
     def _compute_info_gain_numerical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType, pd.Series]:
-        info_attr: int = 0
+        info_attr: float = 0
         tot_instances = len(attr_series)
         
         n_groups: int = self.num_thresholds_numerical_attr if self.num_thresholds_numerical_attr <= attr_series.nunique() else attr_series.nunique()
 
         quantiles_list = attr_series.quantile(np.arange(0, 1, step=1/n_groups), interpolation="nearest")
         
-        for _, value in quantiles_list.items():
-            n_instances = len(attr_series[attr_series <= value])
-            mask: pd.Series = attr_series <= value
-            info_attr += (n_instances/tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
-        
+        for i in range(n_groups):
+            if i == 0:
+                mask = attr_series <= quantiles_list.iloc[i]
+            elif i == n_groups - 1:
+                mask = attr_series > quantiles_list.iloc[i - 1]
+            else:
+                mask = (attr_series > quantiles_list.iloc[i - 1]) & (attr_series <= quantiles_list.iloc[i])
+            
+            n_instances = mask.sum()
+            info_attr += (n_instances / tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
+
         condition = lambda row: math.floor(stats.percentileofscore(quantiles_list, row[attr_name]) * (n_groups) / 100) - 1 
 
-        return self._shannon_entropy(self.df_y) - info_attr, condition, quantiles_list.unique()
-    
+        return self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)]) - info_attr, condition, quantiles_list.unique()
+
     def split(self):
         if self.condition is None:
             raise Exception("Condition is None")

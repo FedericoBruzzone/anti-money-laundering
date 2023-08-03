@@ -36,7 +36,6 @@ class CustomConditionNode(ConditionNode):
             df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
             grouped = df_filtered.groupby(df_filtered.apply(self.condition, axis=1))
             children_indices = {key: group.index.tolist() for key, group in grouped}
-            # print("Here4", children_indices)
             self.children = {key: CustomConditionNode(parent=self, subset_indeces=children_indices[key]) for key in children_indices} 
 
     def _information_gain(self, attr_series: pd.Series,
@@ -57,7 +56,7 @@ class CustomConditionNode(ConditionNode):
         tot: int = a + b
         entropy_mask = imp_func(self.df_y.loc[list(self.subset_indeces)][mask])
         entropy_not_mask = imp_func(self.df_y.loc[list(self.subset_indeces)][~mask])
-        return imp_func(self.df_y) - ((a/tot)*entropy_mask + (b/tot)*entropy_not_mask)
+        return imp_func(self.df_y.loc[list(self.subset_indeces)]) - ((a/tot)*entropy_mask + (b/tot)*entropy_not_mask)
    
     def _generate_attribute_best(self, imp_func=EntropyType.SHANNON,
                                        num_thresholds_numerical_attr: int = 2):
@@ -85,6 +84,7 @@ class CustomConditionNode(ConditionNode):
                     max_val                 = value
                     max_info_gain_attr_name = attr_name
                     max_is_categorical      = is_categorical
+            
         if max_is_categorical:
             self.condition: LambdaType = lambda row: 0 if row[max_info_gain_attr_name] == max_val else 1
         else:

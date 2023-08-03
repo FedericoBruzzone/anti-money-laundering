@@ -42,8 +42,7 @@ class ConditionNode(object):
     def _scaled_entropy(self, y: pd.Series) -> float:
         if isinstance(y, pd.Series):
             prob: float    = y.value_counts() / y.shape[0]
-            e: float       = 1e-9
-            entropy: float = -np.sum(prob/2 * np.log2(prob+e))
+            entropy: float = -np.sum(prob/2 * np.log2(prob))
             return entropy
         else:
             raise Exception("y must be a pandas Series")
@@ -51,8 +50,7 @@ class ConditionNode(object):
     def _shannon_entropy(self, y: pd.Series) -> float:
         if isinstance(y, pd.Series):
             prob: float    = y.value_counts() / y.shape[0]
-            e: float       = 1e-9
-            entropy: float = -np.sum(prob * np.log2(prob+e))
+            entropy: float = -np.sum(prob * np.log2(prob))
             return entropy
         else:
             raise Exception("y must be a pandas Series")

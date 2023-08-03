@@ -56,19 +56,20 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------
     print()
     print("---------------------- Oversampling ----------------------")
-    # pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
-    # if pos_neg_ratio > 0:
-    #     print("Length of training set:", len(df_train))
-    #     OVERSAMPLING_RATIO = 0.2
-    #     print("Positive negative ratio", pos_neg_ratio)
+    pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
+    if pos_neg_ratio > 0:
+        print("Length of training set:", len(df_train))
+        OVERSAMPLING_RATIO = 0.5
+        print("Positive negative ratio", pos_neg_ratio)
 
-    #     while 1 - pos_neg_ratio > OVERSAMPLING_RATIO:
-    #         df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]], ignore_index=True)
-    #         pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
+        while 1 - pos_neg_ratio > OVERSAMPLING_RATIO:
+            print("RATIO: ", 1 - pos_neg_ratio)
+            df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]], ignore_index=True)
+            pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
         
-    #     print("Length of training set after oversampling:", len(df_train))
-    # else:
-    #     print("Oversampling not needed because positive negative ratio is less than 0")
+        print("Length of training set after oversampling:", len(df_train))
+    else:
+        print("Oversampling not needed because positive negative ratio is less than 0")
     print("---------------------- End oversampling ----------------------")
     # ----------------------------------------------------------------------------
   
