@@ -21,8 +21,10 @@ def download_dataset(dataset_name="", path='datasets/', unzip=True):
 
     if (not os.path.exists(kaggle_dataset + "/" + dataset_name)):
         if dataset_name == "":
-            dataset_name = os.getenv("KAGGLE_DATASET_LINK") 
+            dataset_name_aml = os.getenv("KAGGLE_DATASET_LINK_AML") 
+            dataset_name_iris = os.getenv("KAGGLE_DATASET_LINK_IRIS")
 
         kaggle_api = KaggleApi()
         kaggle_api.authenticate()
-        kaggle_api.dataset_download_files(dataset_name, path=path, unzip=unzip)
+        kaggle_api.dataset_download_files(dataset_name_aml, path=path, unzip=unzip)
+        kaggle_api.dataset_download_files(dataset_name_iris, path=path, unzip=unzip)

@@ -28,7 +28,6 @@ if __name__ == "__main__":
     X_test, Y_test = get_X_and_Y(df_test, verbose=VERBOSE)
     
     # print_dataset(X_train, Y_train)
-
     
 
     # print(type(X_train.iloc[0].values)) # <class 'numpy.ndarray'>

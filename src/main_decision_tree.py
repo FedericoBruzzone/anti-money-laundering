@@ -34,7 +34,8 @@ if __name__ == "__main__":
 
     setup_kaggle()
     print("Downloading dataset")
-    download_dataset("uciml/iris")
+    # download_dataset("uciml/iris")
+    # download_dataset("ealtman2019/ibm-transactions-for-anti-money-laundering-aml")
     print("End downloading dataset")
     
     hi_small_trans = "HI-Small_Trans.csv"

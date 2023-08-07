@@ -25,7 +25,10 @@ if __name__ == "__main__":
     download_dataset()
     print("Done!")
 
-    df_train, df_test = get_train_and_test(verbose=VERBOSE)
+    hi_small_trans = "HI-Small_Trans.csv"
+    iris = "Iris.csv"
+    
+    df_train, df_test = get_train_and_test(iris, verbose=VERBOSE)
     X_train, Y_train = get_X_and_Y(df_train, verbose=VERBOSE)
     X_test, Y_test = get_X_and_Y(df_test, verbose=VERBOSE)
     
@@ -36,6 +39,7 @@ if __name__ == "__main__":
     sc = pyspark.SparkContext('local[3]').getOrCreate() # *
     spark = SparkSession(sparkContext=sc) #.builder.appName("pandas to spark").getOrCreate()
     spark.conf.set("spark.sql.execution.arrow.pyspark.enabled", "true")
+    # spark.conf.set("spark.executor.workerThreads", "2")
     df = spark.createDataFrame(X_train.head())
 
     print("Printing spark dataframe...")
@@ -64,4 +68,5 @@ if __name__ == "__main__":
         # return [element[0] for element in worder_dataset]
 
     rdd1 = rdd.mapPartitions(process_partition)
+    
     print(rdd1.collect())
