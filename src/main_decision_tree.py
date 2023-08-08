@@ -10,8 +10,8 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-from src.kaggle_config               import setup_kaggle
-from src.kaggle_config               import download_dataset
+from src.utils.kaggle_config          import setup_kaggle
+from src.utils.kaggle_config          import download_dataset
 
 from src.utils.datasets_handler      import get_train_and_test
 from src.utils.datasets_handler      import get_X_and_Y
@@ -64,7 +64,6 @@ if __name__ == "__main__":
         print("Positive negative ratio", pos_neg_ratio)
 
         while 1 - pos_neg_ratio > OVERSAMPLING_RATIO:
-            print("RATIO: ", 1 - pos_neg_ratio)
             df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]], ignore_index=True)
             pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
         

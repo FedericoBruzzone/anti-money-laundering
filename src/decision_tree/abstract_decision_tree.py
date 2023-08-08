@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import collections
 from typing import Any
+import os
 from types import FunctionType
 from types import MethodType
 from types import LambdaType
@@ -149,8 +150,10 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         dot_str += "}\n"
         return dot_str
     
-    def create_dot_files(self, filename: str = "tree", generate_png:bool = False, view: bool = ""):
+    def create_dot_files(self, filename: str = "tree", generate_png:bool = False, view: str = "default-viewer"):
         str_dot: str = self.str_dot()
+        
+        os.makedirs("dot_figs", exist_ok=True)
         
         filename_dot: str = f"dot_figs/{filename}.dot"
         with open(filename_dot, "w") as f:

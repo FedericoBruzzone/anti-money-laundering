@@ -13,7 +13,7 @@ def get_train_and_test(dataset_name="", verbose = False):
     if verbose:
         print(df.shape)
         print(df.head())
-        print(df["Is Laundering"].value_counts())
+        print(df.iloc[:, -1].value_counts())
         
     return df_train, df_test
 

@@ -2,8 +2,8 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-from src.kaggle_config import setup_kaggle
-from src.kaggle_config import download_dataset
+from src.utils.kaggle_config import setup_kaggle
+from src.utils.kaggle_config import download_dataset
 from src.utils.datasets_handler import get_train_and_test
 from src.utils.datasets_handler import get_X_and_Y
 
