@@ -9,6 +9,9 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 def get_spark_session(name: str = "AntiMoneyLaundering", verbose: bool = False):
+    if 'spark' in vars():
+        spark.stop()
+
     num_cores: int = cpu_count()
     spark = SparkSession.builder \
         .master("local[*]") \
