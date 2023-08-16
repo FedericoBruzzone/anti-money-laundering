@@ -27,7 +27,7 @@ class CustomConditionNode(ConditionNode):
         self.parent: ConditionNode              = parent
         self.subset_indeces: set[int]           = subset_indeces
         self.value: int                         = self.calculate_value() if value is None else value
-        self.dot_attr: collections.defaultdict[str, Any] = collections.defaultdict(str)
+        self.attrs: collections.defaultdict[str, Any] = collections.defaultdict(str)
 
     def split(self):
         if self.condition is None:
@@ -92,7 +92,7 @@ class CustomConditionNode(ConditionNode):
 
         print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain)
         
-        self.set_dot_attr(max_info_gain_attr_name, max_val, max_info_gain, max_is_categorical)
+        self.set_attrs(max_info_gain_attr_name, max_val, max_info_gain, max_is_categorical)
         
     def _generate_attribute_random(self, imp_func: int = EntropyType.SHANNON, 
                                          num_thresholds_numerical_attr: int = 2):
@@ -124,7 +124,7 @@ class CustomConditionNode(ConditionNode):
        
         print("SPLIT ON", attr_name, "WITH IG =", max_ig)
 
-        self.set_dot_attr(attr_name, max_val, max_ig, is_categorical)
+        self.set_attrs(attr_name, max_val, max_ig, is_categorical)
 
     def generate_condition(self, type_criterion: int = CriterionType.RANDOM, 
                                  imp_func: int = EntropyType.SHANNON,

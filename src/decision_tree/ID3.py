@@ -54,11 +54,14 @@ class ConditionNodeID3(ConditionNode):
                 max_is_categorical = is_categorical
                 max_condition = condition
             
-        print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain)
+        print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain, "IS CATEGORICAL =", max_is_categorical, "\n")
 
         self.condition = max_condition
         self.splitted_attr_names.append(max_info_gain_attr_name)
-        self.set_dot_attr(max_info_gain_attr_name, condition_value , float(max_info_gain), max_is_categorical) # TODO: fix the " " in ancestor
+        self.set_attrs(max_info_gain_attr_name, 
+                       condition_value , 
+                       float(max_info_gain), 
+                       max_is_categorical) # TODO: fix the " " in ancestor
         return self
    
     def _compute_info_gain_categorical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType, pd.Series]:
@@ -75,7 +78,8 @@ class ConditionNodeID3(ConditionNode):
         info_attr: float = 0
         tot_instances = len(attr_series)
         
-        n_groups: int = self.num_thresholds_numerical_attr if self.num_thresholds_numerical_attr <= attr_series.nunique() else attr_series.nunique()
+        n_groups: int = self.num_thresholds_numerical_attr if self.num_thresholds_numerical_attr <= attr_series.nunique() \
+                                                           else attr_series.nunique()
 
         quantiles_list = attr_series.quantile(np.arange(0, 1, step=1/n_groups), interpolation="nearest")
         
@@ -156,6 +160,6 @@ class DecisionTreeID3(AbstractDecisionTree):
         if node is None or depth == 15:
             return
 
-        print(" "*depth, node.dot_attr["attr_name"])
+        print(" "*depth, node.attrs["attr_name"])
         for child in node.children.values():
             self._print_tree_rec(child, depth + 1)

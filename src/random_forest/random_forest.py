@@ -31,6 +31,7 @@ if __name__ == "__main__":
     
     COLUMNS_NAME: list = df_train.columns.tolist()
     X_test, y_test = get_X_and_Y(df_test, verbose=VERBOSE)
+    
     X_train, y_train = get_X_and_Y(df_train, verbose=VERBOSE)
     encoder = {'Iris-setosa': 0, 'Iris-versicolor': 1, 'Iris-virginica': 2}
     y_test = y_test.replace(encoder)
@@ -67,26 +68,28 @@ if __name__ == "__main__":
     
     def predict_trees(new_line):
         def wrap(tree):
-            print("TREE: ", tree)
-            print("NEW LINE: ", new_line)
-            # prediction = tree.predict(new_line)
-            # print("PREDICTION: ", prediction)
-            return tree
+            prediction = tree.predict(new_line)
+            return prediction
         return wrap
    
     rdd_tree = rdd.mapPartitions(create_trees)
     print(rdd_tree.collect())
-    first_tree = rdd_tree.first() 
     
+    first_tree = rdd_tree.first() 
     print("FIRST TREE: ")
-    first_tree.create_dot_files(filename="tree",
-                                generate_png=True,
-                                view=VIEW)
+    # first_tree.create_dot_files(filename="tree",
+    #                             generate_png=True,
+    #                             view=VIEW)
+
     new_line = X_test.iloc[0]
     print("NEW LINE: ", new_line)
     # prediction = first_tree.predict(new_line)
-    predictions = list(first_tree.predict_test(X_train))
-    print("PREDICTIONS: ", predictions)
+    # print("PREDICTION: ", prediction)
+    # predictions = list(first_tree.predict_test(X_train))
+    # print("PREDICTIONS: ", predictions)
+
+    rdd_predictions = rdd_tree.map(predict_trees(new_line))
+    print(rdd_predictions.collect())
 
     # for i in range(len(X_test)):
     #     rdd_predictions = rdd_tree.map(predict_trees(new_line))

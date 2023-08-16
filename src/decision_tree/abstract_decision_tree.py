@@ -24,8 +24,8 @@ class ConditionNode(object):
         self.parent: ConditionNode              = parent
         self.subset_indeces: set[int]           = subset_indeces
         self.value: int                         = self.calculate_value() if value is None else value
-        self.dot_attr: collections.defaultdict[str, Any] = collections.defaultdict(str)
-    
+        self.attrs: collections.defaultdict[str, Any] = collections.defaultdict(str)
+
     @abstractmethod
     def generate_condition(self, type_criterion: int = 0, imp_func: int = 0) -> FunctionType: pass
     
@@ -56,7 +56,6 @@ class ConditionNode(object):
         else:
             raise Exception("y must be a pandas Series")
 
-    
     def calculate_value(self):
         if len(self.subset_indeces) == 0:
             return 0
@@ -65,6 +64,12 @@ class ConditionNode(object):
         assert len(self.df_y.filter(list(self.subset_indeces))) == len(self.subset_indeces)
         assert value == 0 or value == 1
         return value
+
+    def get_most_common_value(self):
+        attr_name: str = self.attrs["attr_name"]
+        df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
+        most_common_value = df_filtered.loc[:, attr_name].value_counts().idxmax()       
+        return most_common_value
 
     def get_labels(self) -> pd.Series:
         return self.df_y.loc[list(self.subset_indeces)]
@@ -78,8 +83,8 @@ class ConditionNode(object):
     def is_leaf(self) -> bool:
         return len(self.children) == 0
     
-    def set_dot_attr(self, attr_name : str, condition_value, ig : float, is_categorical : bool):
-        self.dot_attr = collections.defaultdict(str, {
+    def set_attrs(self, attr_name : str, condition_value, ig : float, is_categorical : bool):
+        self.attrs = collections.defaultdict(str, {
             "attr_name": attr_name,
             "condition_value": condition_value,
             "ig": ig,
@@ -89,8 +94,8 @@ class ConditionNode(object):
     def str_dot(self) -> str:
         s = ""
         if not self.is_leaf():
-            s = f"""{self.dot_attr["attr_name"]} {"=" if self.dot_attr["is_categorical"] else "<="} {self.dot_attr["condition_value"]}
-IG: {self.dot_attr["ig"]}"""
+            s = f"""{self.attrs["attr_name"]} {"=" if self.attrs["is_categorical"] else "<="} {self.attrs["condition_value"]}
+IG: {self.attrs["ig"]}"""
             
         return f"""Class: {self.calculate_value()}\n{s}"""
     
@@ -107,15 +112,15 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
     @abstractmethod
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame): pass
 
-    def predict(self, x: pd.Series): 
-        return self.__predict_rec(x, self.root)
-        
     def predict_test(self, X: pd.DataFrame):
         for i in range(len(X)):
-            try:
-                yield self.predict(X.iloc[i])
-            except:
-                pass
+            yield self.predict(X.iloc[i])
+
+    def predict(self, x: pd.Series): 
+        #try:
+        return self.__predict_rec(x, self.root)
+        #except:
+        #    pass
     
     def __predict_rec(self, x: pd.Series, node: ConditionNode):
         val = None
@@ -123,6 +128,11 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
             val = node.value
         else:
             branch: int = node.condition(x)
+            print(node.attrs["is_categorical"])
+            print(branch)
+            if (branch not in node.children and node.attrs["is_categorical"]):
+                # branch = list(node.children.keys())[0]
+                branch = node.get_most_common_value()
             if node.children[branch] is None:
                 val = node.value
             else:
