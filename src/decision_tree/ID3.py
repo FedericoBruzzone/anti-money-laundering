@@ -42,10 +42,8 @@ class ConditionNodeID3(ConditionNode):
             info_gain, condition   = None, None
             
             if is_categorical:
-                # print(attr_name, "CATEGORICAL", attr_series.nunique())
                 info_gain, condition, condition_value = self._compute_info_gain_categorical(attr_series, attr_name)
             else:
-                # print(attr_name, "NUMERICAL", attr_series.nunique())
                 info_gain, condition, condition_value = self._compute_info_gain_numerical(attr_series, attr_name)
             
             if info_gain > max_info_gain:
@@ -54,14 +52,14 @@ class ConditionNodeID3(ConditionNode):
                 max_is_categorical = is_categorical
                 max_condition = condition
             
-        print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain, "IS CATEGORICAL =", max_is_categorical, "\n")
+        print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain, "IS CATEGORICAL =", max_is_categorical)
 
         self.condition = max_condition
         self.splitted_attr_names.append(max_info_gain_attr_name)
         self.set_attrs(max_info_gain_attr_name, 
                        condition_value , 
                        float(max_info_gain), 
-                       max_is_categorical) # TODO: fix the " " in ancestor
+                       max_is_categorical)
         return self
    
     def _compute_info_gain_categorical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType, pd.Series]:
@@ -72,7 +70,11 @@ class ConditionNodeID3(ConditionNode):
             mask: pd.Series = attr_series == value
             info_attr += (n_instances/tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
         
-        return self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)]) - info_attr, lambda row: row[attr_name], attr_series.unique()
+        true_type: type = type(attr_series.iloc[0])
+
+        return self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)]) - info_attr, \
+               lambda row: true_type(row[attr_name]), \
+               attr_series.unique()
 
     def _compute_info_gain_numerical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType, pd.Series]:
         info_attr: float = 0
@@ -94,22 +96,22 @@ class ConditionNodeID3(ConditionNode):
             n_instances = mask.sum()
             info_attr += (n_instances / tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
 
-        condition = lambda row: math.floor(stats.percentileofscore(quantiles_list, row[attr_name]) * (n_groups) / 100) - 1 
+        condition = lambda row: math.floor(stats.percentileofscore(quantiles_list, row[attr_name]) * (n_groups) / 100) 
 
-        return self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)]) - info_attr, condition, quantiles_list.unique()
+        return self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)]) - info_attr, \
+               condition, \
+               quantiles_list.unique()
 
     def split(self):
         if self.condition is None:
             raise Exception("Condition is None")
         else:
             df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
-
             grouped = df_filtered.groupby(df_filtered.apply(self.condition, axis=1))
-
             children_indices = {key: group.index.tolist() for key, group in grouped}
-            for key in children_indices:
+            for key, group in children_indices.items():
                 self.children.update({key: ConditionNodeID3(parent=self, 
-                                                            subset_indeces=set(children_indices[key]), 
+                                                            subset_indeces=set(group), 
                                                             splitted_attr_names=self.splitted_attr_names,
                                                             num_thresholds_numerical_attr=self.num_thresholds_numerical_attr)})
             return self
@@ -132,7 +134,6 @@ class DecisionTreeID3(AbstractDecisionTree):
                                      num_thresholds_numerical_attr=self.num_thresholds_numerical_attr)
         self.root.set_df_x(df_x)
         self.root.set_df_y(df_y)
-        
         self.__fit_rec(self.root, 0)
 
     def __fit_rec(self, node: ConditionNodeID3, depth: int):

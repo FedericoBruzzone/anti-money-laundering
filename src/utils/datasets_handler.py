@@ -1,9 +1,10 @@
 import pandas as pd
+import numpy as np
 
 pd.set_option('display.max_columns', None)
 
 def get_train_and_test(dataset_name="", verbose = False):
-    df = pd.read_csv(f"datasets/{dataset_name}", sep=",", nrows=1000000)
+    df = pd.read_csv(f"datasets/{dataset_name}", sep=",") #, nrows=300000)
     df_train = df.sample(frac=0.7, random_state=1)
     df_test  = df.drop(df_train.index)
 
@@ -33,7 +34,7 @@ def label_encoder(df: pd.DataFrame, columns: list[str]):
         encoders = {}
         for column in columns:
             unique_values = df[column].unique()
-            encoder = {value: index for index, value in enumerate(unique_values)}
+            encoder = {value: np.int64(index) for index, value in enumerate(unique_values)}
             df[column] = df[column].map(encoder)
             encoders[column] = encoder
         return df, encoders
@@ -43,4 +44,3 @@ def print_dataset(X_train, Y_train):
         print(X_train.iloc[i])
         print(Y_train.iloc[i])
         print()
-

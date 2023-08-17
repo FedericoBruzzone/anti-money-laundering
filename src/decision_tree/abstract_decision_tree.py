@@ -65,11 +65,12 @@ class ConditionNode(object):
         assert value == 0 or value == 1
         return value
 
-    def get_most_common_value(self):
+    def get_most_common_row(self):
         attr_name: str = self.attrs["attr_name"]
         df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
         most_common_value = df_filtered.loc[:, attr_name].value_counts().idxmax()       
-        return most_common_value
+        most_common_row = df_filtered[df_filtered[attr_name] == most_common_value].iloc[0]
+        return most_common_row
 
     def get_labels(self) -> pd.Series:
         return self.df_y.loc[list(self.subset_indeces)]
@@ -127,12 +128,16 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
         if node.is_leaf():
             val = node.value
         else:
+            # print("X:", x)
             branch: int = node.condition(x)
-            print(node.attrs["is_categorical"])
-            print(branch)
-            if (branch not in node.children and node.attrs["is_categorical"]):
-                # branch = list(node.children.keys())[0]
-                branch = node.get_most_common_value()
+            # print("IS_CATEGORICAL", node.attrs["is_categorical"])
+            # print("SPLIT: ", node.attrs["attr_name"])
+            # print("BARCH: ", branch)
+            # print("CHILDREN: ", node.children.keys())
+            if branch not in node.children.keys(): # FAIL WITH `and node.attrs["is_categorical"]`
+                new_x: pd.Series = node.get_most_common_row()
+                branch: int = node.condition(new_x)
+            
             if node.children[branch] is None:
                 val = node.value
             else:
