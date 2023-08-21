@@ -118,14 +118,16 @@ class ConditionNodeID3(ConditionNode):
     
 class DecisionTreeID3(AbstractDecisionTree):
     def __init__(self, max_depth: int = 10, 
-                       num_thresholds_numerical_attr: int = 2):
+                       num_thresholds_numerical_attr: int = 2,
+                       VERBOSE: bool = True):
         super().__init__(max_depth=max_depth)
         self.num_thresholds_numerical_attr: int =num_thresholds_numerical_attr
         
-        print("PARAMETERS:")
-        print("\tMAX DEPTH:", self.max_depth)
-        print("\tNUM THRESHOLDS NUMERICAL ATTR:", self.num_thresholds_numerical_attr)
-        print()
+        if VERBOSE:
+            print("PARAMETERS:")
+            print("\tMAX DEPTH:", self.max_depth)
+            print("\tNUM THRESHOLDS NUMERICAL ATTR:", self.num_thresholds_numerical_attr)
+            print()
 
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
         self.root = ConditionNodeID3(value=round(sum(df_y) / len(df_y)), 

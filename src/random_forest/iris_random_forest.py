@@ -57,7 +57,8 @@ if __name__ == "__main__":
         y_train[y_train == 2] = 0
 
         decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10, 
-                                                         num_thresholds_numerical_attr=6)
+                                                         num_thresholds_numerical_attr=6,
+                                                         VERBOSE=False)
         decision_tree.fit(X_train, y_train)
         # ctx = TaskContext()
         # decision_tree.create_dot_files(filename="tree" + str(ctx.partitionId()),
@@ -72,30 +73,12 @@ if __name__ == "__main__":
             return prediction
         return wrap
    
-    rdd_tree = rdd.mapPartitions(create_trees)
-    print(rdd_tree.collect())
+    rdd_tree = rdd.mapPartitions(create_trees).cache().persist()
+    rdd_tree.collect()
     
-    first_tree = rdd_tree.first() 
-    print("FIRST TREE: ")
-    # first_tree.create_dot_files(filename="tree",
-    #                             generate_png=True,
-    #                             view=VIEW)
-
-    new_line = X_test.iloc[0]
-    print("NEW LINE: ", new_line)
-    # prediction = first_tree.predict(new_line)
-    # print("PREDICTION: ", prediction)
-    # predictions = list(first_tree.predict_test(X_train))
-    # print("PREDICTIONS: ", predictions)
-
-    rdd_predictions = rdd_tree.map(predict_trees(new_line))
-    print(rdd_predictions.collect())
-
-    # for i in range(len(X_test)):
-    #     rdd_predictions = rdd_tree.map(predict_trees(new_line))
-    #     print(rdd_predictions.collect())
-    #     break
-    
+    for i in range(len(X_test)):
+        rdd_predictions = rdd_tree.map(predict_trees(X_test.iloc[i]))
+        print(rdd_predictions.collect())
 
     # TEST
     # print("Partition number: ", rdd.getNumPartitions())

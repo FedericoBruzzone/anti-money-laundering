@@ -144,7 +144,8 @@ class CustomDecisionTree(AbstractDecisionTree):
                        type_criterion                = CriterionType.RANDOM,
                        max_depth                     = 10,
                        min_samples_split             = 2,
-                       num_thresholds_numerical_attr = 2):
+                       num_thresholds_numerical_attr = 2,
+                       VERBOSE                       = True):
         super().__init__(max_depth=max_depth, min_samples_split=min_samples_split)
         self.criterion: int        = criterion
         self.type_criterion:int    = type_criterion
@@ -158,14 +159,15 @@ class CustomDecisionTree(AbstractDecisionTree):
                 criterion_str = "Gini"
             case EntropyType.SCALED:
                 criterion_str = "Scaled"
-
-        print("PARAMETERS:")
-        print("\tCRITERION: " + criterion_str)
-        print("\tTYPE CRITERION: " + ("Random" if self.type_criterion == 0 else "Best"))
-        print("\tMAX DEPTH: " + str(self.max_depth))
-        print("\tMIN SAMPLES SPLIT: " + str(self.min_samples_split))
-        print("\tNUM THRESHOLDS NUMERICAL ATTR: " + str(self.num_thresholds_numerical_attr))
-        print()
+        
+        if VERBOSE:
+            print("PARAMETERS:")
+            print("\tCRITERION: " + criterion_str)
+            print("\tTYPE CRITERION: " + ("Random" if self.type_criterion == 0 else "Best"))
+            print("\tMAX DEPTH: " + str(self.max_depth))
+            print("\tMIN SAMPLES SPLIT: " + str(self.min_samples_split))
+            print("\tNUM THRESHOLDS NUMERICAL ATTR: " + str(self.num_thresholds_numerical_attr))
+            print()
     
     def fit(self, df_x: pd.DataFrame, df_y: pd.DataFrame):
         self.root: ConditionNode = CustomConditionNode(value=round(sum(df_y) / len(df_y)), 

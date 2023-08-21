@@ -10,77 +10,49 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-from src.utils.kaggle_config          import setup_kaggle
-from src.utils.kaggle_config          import download_dataset
+from src.utils.kaggle_config            import setup_kaggle
+from src.utils.kaggle_config            import download_dataset
 
-from src.utils.datasets_handler      import get_train_and_test
-from src.utils.datasets_handler      import get_X_and_Y
-from src.utils.datasets_handler      import print_dataset
-from src.utils.datasets_handler      import label_encoder
-from src.utils.performance_measures  import calculate_performances
-from src.utils.plot_measures         import (plot_correlation_matrix,  
-                                             plot_numerical_histograms, 
-                                             plot_roc_curve,
-                                             plot_confusion_matrix)
+from src.utils.datasets_handler         import get_train_and_test
+from src.utils.datasets_handler         import get_X_and_Y
+from src.utils.datasets_handler         import print_dataset
+from src.utils.datasets_handler         import label_encoder
+from src.utils.performance_measures     import calculate_performances
+from src.utils.plot_measures            import (plot_correlation_matrix,  
+                                                plot_numerical_histograms, 
+                                                plot_roc_curve,
+                                                plot_confusion_matrix)
+from src.utils.dataset_sampling_methods import (oversampling,
+                                                undersampling,
+                                                bootstrap_sampling)
 
-from src.decision_tree.decision_tree  import CustomDecisionTree
-from src.decision_tree.ID3            import DecisionTreeID3
-from src.decision_tree.entropy_type   import EntropyType
-from src.decision_tree.criterion_type import CriterionType
+from src.decision_tree.decision_tree    import CustomDecisionTree
+from src.decision_tree.ID3              import DecisionTreeID3
+from src.decision_tree.entropy_type     import EntropyType
+from src.decision_tree.criterion_type   import CriterionType
 
 if __name__ == "__main__":
     VERBOSE = int(os.getenv('VERBOSE'))
     VIEW = os.getenv('VIEW')
 
     setup_kaggle()
-    print("Downloading dataset")
-    # download_dataset("uciml/iris")
-    # download_dataset("ealtman2019/ibm-transactions-for-anti-money-laundering-aml")
-    print("End downloading dataset")
-    
+    print("---------------------- Downloading dataset ----------------------") 
+    download_dataset("uciml/iris")
+    download_dataset("ealtman2019/ibm-transactions-for-anti-money-laundering-aml")
+    print("---------------------- End downloading dataset ----------------------")
+
     hi_small_trans = "HI-Small_Trans.csv"
     hi_medium_trans = "HI-Medium_Trans.csv"
     hi_large_trans = "HI-Large_Trans.csv"
     iris = "Iris.csv"
     df_train, df_test = get_train_and_test(hi_small_trans, verbose=VERBOSE)
 
-    # Undersampling --------
-    # print("df len: ", len(df_train))
-    # is_laundering = df_train[df_train['Is Laundering']==1]
-    # is_not_laundering = df_train[df_train['Is Laundering']==0]
-    # is_not_laundering = is_not_laundering.sample(n=len(is_laundering), random_state=101)
-    # df_train = pd.concat([is_laundering, is_not_laundering],axis=0)
-    # print("Undersampled df len: ", len(df_train))
-    # ----------------------
-    
-
-
-    # OVERSAMPLING
-    # ----------------------------------------------------------------------------
-    print()
-    print("---------------------- Oversampling ----------------------")
-    # pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
-    # if pos_neg_ratio > 0:
-    #     print("Length of training set:", len(df_train))
-    #     OVERSAMPLING_RATIO = 0.5
-    #     print("Positive negative ratio", pos_neg_ratio)
-
-    #     while 1 - pos_neg_ratio > OVERSAMPLING_RATIO:
-    #         df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]], ignore_index=True)
-    #         pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
-        
-    #     print("Length of training set after oversampling:", len(df_train))
-    # else:
-    #     print("Oversampling not needed because positive negative ratio is less than 0")
-    print("---------------------- End oversampling ----------------------")
-    # ----------------------------------------------------------------------------
-  
-
+    df_train = oversampling(df_train, VERBOSE=True)
+    # df_train = undersampling(df_train, VERBOSE=True)
+    # df_train = bootstrap_sampling(df_train, VERBOSE=True)
 
     # SETTING UP DATASET
     # ----------------------------------------------------------------------------
-    print()
-    print("---------------------- Setting up dataset --------------------------")
     X_train, y_train = get_X_and_Y(df_train, verbose=VERBOSE)
     X_test, y_test = get_X_and_Y(df_test, verbose=VERBOSE)
     # print_dataset(X_train, y_train)
@@ -93,9 +65,7 @@ if __name__ == "__main__":
     # y_test = y_test.replace(encoder)
     # y_train[y_train == 2] = 0
     # y_test[y_test == 2] = 0
-    print("---------------------- End setting up dataset --------------------------")
     # ----------------------------------------------------------------------------
-
 
 
     # PLOTTING
@@ -108,7 +78,7 @@ if __name__ == "__main__":
     plot_numerical_histograms(df_train)
     print("-------------------------- End plotting --------------------------")
     # ----------------------------------------------------------------------------
-       
+      
 
 
     # ID3
