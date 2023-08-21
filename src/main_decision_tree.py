@@ -109,7 +109,7 @@ if __name__ == "__main__":
     decision_tree = CustomDecisionTree(criterion=EntropyType.SHANNON, 
                                        type_criterion=CriterionType.BEST, 
                                        max_depth=10, 
-                                       min_samples_split=14,
+                                       min_samples_split=20,
                                        num_thresholds_numerical_attr=6)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
