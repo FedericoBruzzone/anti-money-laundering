@@ -4,6 +4,19 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+def is_notebook() -> bool:
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True   # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False      # Probably standard Python interpreter
+
+
 def plot_correlation_matrix(data, plot_size=(14, 12)):
     """
     Plot the correlation matrix of the dataset.
@@ -19,7 +32,7 @@ def plot_correlation_matrix(data, plot_size=(14, 12)):
     plt.xticks(rotation=45, ha='right')
 
     plt.title("Correlation Matrix")
-    if plt.get_backend().lower() == 'module://ipykernel.pylab.backend_inline':
+    if is_notebook():
         plt.show()
     else:
         figs_directory = "plt_figs" 
@@ -38,7 +51,7 @@ def plot_numerical_histograms(data, plot_size=(14, 12)):
     plt.suptitle("Histograms of Numerical Columns", y=1.02)
     plt.tight_layout()
     
-    if plt.get_backend().lower() == 'module://ipykernel.pylab.backend_inline':
+    if is_notebook():
         plt.show()
     else:
         figs_directory = "plt_figs"
@@ -75,7 +88,8 @@ def plot_confusion_matrix(cm, classes, model_name, normalize=False, plot_size=(1
     plt.xlabel('Predicted label')
     plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
 
-    if plt.get_backend().lower() == 'module://ipykernel.pylab.backend_inline':
+    if is_notebook():
+        plt.figure(figsize=(5,5))
         plt.show()
     else:
         figs_directory = "plt_figs"
@@ -97,7 +111,7 @@ def plot_roc_curve(fpr, tpr, auc, model_name, plot_size=(14, 12)):
     plt.title("ROC Curve")
     plt.legend(loc="lower right")
     
-    if plt.get_backend().lower() == 'module://ipykernel.pylab.backend_inline':
+    if is_notebook():
         plt.show()
     else:
         figs_directory = "plt_figs"

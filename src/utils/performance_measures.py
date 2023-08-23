@@ -81,7 +81,7 @@ def calculate_performances(y_pred, y_test, model_name, verbose = False) -> (floa
         print("True positive rate:", tpr)
         print("False positive rate:", fpr)
     
-    plot_roc_curve(fpr_list, tpr_list, 1, model_name)
+    # plot_roc_curve(fpr_list, tpr_list, 1, model_name)
     plot_confusion_matrix(cm, classes, model_name, normalize=False) 
 
     return accuracy, f1_score
