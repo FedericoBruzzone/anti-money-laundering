@@ -66,11 +66,13 @@ class ConditionNode(object):
         return value
 
     def get_most_common_row(self):
-        attr_name: str = self.attrs["attr_name"]
-        df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
-        most_common_value = df_filtered.loc[:, attr_name].value_counts().idxmax()       
-        most_common_row = df_filtered[df_filtered[attr_name] == most_common_value].iloc[0]
-        return most_common_row
+        if not hasattr(self, "most_common_row"):
+            attr_name: str = self.attrs["attr_name"]
+            df_filtered: pd.DataFrame = self.df_x.loc[list(self.subset_indeces)]
+            most_common_value = df_filtered.loc[:, attr_name].value_counts().idxmax()       
+            most_common_row = df_filtered[df_filtered[attr_name] == most_common_value].iloc[0]
+            self.most_common_row = most_common_row
+        return self.most_common_row
 
     def get_labels(self) -> pd.Series:
         return self.df_y.loc[list(self.subset_indeces)]
@@ -115,6 +117,7 @@ class AbstractDecisionTree(object, metaclass=ABCMeta):
 
     def predict_test(self, X: pd.DataFrame):
         for i in range(len(X)):
+            # print("N.", i)
             yield self.predict(X.iloc[i])
 
     def predict(self, x: pd.Series): 

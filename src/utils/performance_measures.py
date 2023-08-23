@@ -69,20 +69,15 @@ def calculate_performances(y_pred, y_test, model_name, verbose = False) -> (floa
     classes = ['0', '1']
 
     if verbose :
-        print("F1 score:", f1_s)
-        print("Accuracy:", acc)
-        print("Precision:", precision(y_pred, y_test))
-        print("Recall:", recall(y_pred, y_test))
+        print("%12s: %7.6f %12s: %7.6f" % ("F1 score", f1_s, "Accuracy", acc))
+        print("%12s: %7.6f %12s: %7.6f" % ("Precision", precision(y_pred, y_test), "Recall", recall(y_pred, y_test)))
         
-        print("True positive: ", tp)
-        print("True negative: ", tn)
-        print("False positive: ", fp)
-        print("False negative: ", fn)
-        print("True positive rate:", tpr)
-        print("False positive rate:", fpr)
+        print("%12s: %8d %12s: %8d" % ("TP", tp, "TN", tn))
+        print("%12s: %8d %12s: %8d" % ("FP", fp, "FN", fn))
+        print("%12s: %7.6f %12s: %7.6f" % ("TPR", tpr, "FPR", fpr))
     
     # plot_roc_curve(fpr_list, tpr_list, 1, model_name)
-    plot_confusion_matrix(cm, classes, model_name, normalize=False) 
+    # plot_confusion_matrix(cm, classes, model_name, normalize=False) 
 
     return accuracy, f1_score
 

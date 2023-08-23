@@ -21,6 +21,7 @@ def plot_correlation_matrix(data, plot_size=(14, 12)):
     """
     Plot the correlation matrix of the dataset.
     """
+
     correlation_matrix = data.corr()
     plt.figure(figsize=plot_size)
 
@@ -33,6 +34,7 @@ def plot_correlation_matrix(data, plot_size=(14, 12)):
 
     plt.title("Correlation Matrix")
     if is_notebook():
+        
         plt.show()
     else:
         figs_directory = "plt_figs" 
@@ -61,11 +63,11 @@ def plot_numerical_histograms(data, plot_size=(14, 12)):
         plt.savefig(os.path.join(figs_directory, "numerical_histograms.png"))
         plt.close()
 
-def plot_confusion_matrix(cm, classes, model_name, normalize=False, plot_size=(16.5, 14)):
+def plot_confusion_matrix(cm, classes, model_name, normalize=False, plot_size=(5,5)):# 16.5, 14)):
     """
     Plot the confusion matrix for the model.
     """
-    plt.figure(figsize=plot_size)
+    # plt.figure(figsize=plot_size)
 
     if normalize:
         cm = np.round(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], 2)
@@ -89,7 +91,7 @@ def plot_confusion_matrix(cm, classes, model_name, normalize=False, plot_size=(1
     plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
 
     if is_notebook():
-        plt.figure(figsize=(5,5))
+        #plt.figure(figsize=(1,1), dpi=80)
         plt.show()
     else:
         figs_directory = "plt_figs"
@@ -111,7 +113,8 @@ def plot_roc_curve(fpr, tpr, auc, model_name, plot_size=(14, 12)):
     plt.title("ROC Curve")
     plt.legend(loc="lower right")
     
-    if is_notebook():
+    if is_notebook(): # TODO: it doesn't work
+        print("is notebook")
         plt.show()
     else:
         figs_directory = "plt_figs"

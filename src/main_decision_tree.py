@@ -48,7 +48,7 @@ if __name__ == "__main__":
     iris = "Iris.csv"
     diabetes = "diabetes_prediction_dataset.csv"
 
-    df_train, df_test = get_train_and_test(diabetes, verbose=VERBOSE)
+    df_train, df_test = get_train_and_test(hi_small_trans, verbose=VERBOSE)
 
     # df_train = oversampling(df_train, VERBOSE=True)
     # df_train = undersampling(df_train, VERBOSE=True)

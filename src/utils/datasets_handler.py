@@ -4,8 +4,8 @@ import numpy as np
 pd.set_option('display.max_columns', None)
 
 def get_train_and_test(dataset_name="", verbose = False):
-    df = pd.read_csv(f"datasets/{dataset_name}") #, sep=",", nrows=300000)
-    df_train = df.sample(frac=0.7, random_state=1)
+    df = pd.read_csv(f"datasets/{dataset_name}", sep=",") # , nrows=500000)
+    df_train = df.sample(frac=0.8, random_state=1)
     df_test  = df.drop(df_train.index)
 
     # print(df_train.head(5))
