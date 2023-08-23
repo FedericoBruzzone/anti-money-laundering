@@ -39,8 +39,8 @@ VERBOSE=0|1
 
 `deactivate`
 
-### Run the `main.py` file 
+### Run the `<file>.py` file 
 
-`python3 -m src.main`
+`python3 -m src.<file>`
 
 

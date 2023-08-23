@@ -52,7 +52,7 @@ class ConditionNodeID3(ConditionNode):
                 max_is_categorical = is_categorical
                 max_condition = condition
             
-        print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain, "IS CATEGORICAL =", max_is_categorical)
+        # print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain, "IS CATEGORICAL =", max_is_categorical)
 
         self.condition = max_condition
         self.splitted_attr_names.append(max_info_gain_attr_name)

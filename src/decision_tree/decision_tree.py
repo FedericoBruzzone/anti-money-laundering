@@ -90,7 +90,7 @@ class CustomConditionNode(ConditionNode):
         else:
             self.condition: LambdaType = lambda row: 0 if row[max_info_gain_attr_name] <= max_val else 1
 
-        print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain)
+        # print("SPLIT ON", max_info_gain_attr_name, "WITH IG =", max_info_gain)
         
         self.set_attrs(max_info_gain_attr_name, max_val, max_info_gain, max_is_categorical)
         
@@ -122,7 +122,7 @@ class CustomConditionNode(ConditionNode):
         else:
             self.condition: LambdaType = lambda row: 0 if row[attr_name] <= max_val else 1     
        
-        print("SPLIT ON", attr_name, "WITH IG =", max_ig)
+        # print("SPLIT ON", attr_name, "WITH IG =", max_ig)
 
         self.set_attrs(attr_name, max_val, max_ig, is_categorical)
 

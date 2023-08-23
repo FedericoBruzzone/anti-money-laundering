@@ -38,6 +38,7 @@ if __name__ == "__main__":
     setup_kaggle()
     print("---------------------- Downloading dataset ----------------------") 
     download_dataset("uciml/iris")
+    download_dataset("iammustafatz/diabetes-prediction-dataset")
     download_dataset("ealtman2019/ibm-transactions-for-anti-money-laundering-aml")
     print("---------------------- End downloading dataset ----------------------")
 
@@ -45,9 +46,11 @@ if __name__ == "__main__":
     hi_medium_trans = "HI-Medium_Trans.csv"
     hi_large_trans = "HI-Large_Trans.csv"
     iris = "Iris.csv"
-    df_train, df_test = get_train_and_test(hi_small_trans, verbose=VERBOSE)
+    diabetes = "diabetes_prediction_dataset.csv"
 
-    df_train = oversampling(df_train, VERBOSE=True)
+    df_train, df_test = get_train_and_test(diabetes, verbose=VERBOSE)
+
+    # df_train = oversampling(df_train, VERBOSE=True)
     # df_train = undersampling(df_train, VERBOSE=True)
     # df_train = bootstrap_sampling(df_train, VERBOSE=True)
 
@@ -55,7 +58,8 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------
     X_train, y_train = get_X_and_Y(df_train, verbose=VERBOSE)
     X_test, y_test = get_X_and_Y(df_test, verbose=VERBOSE)
-    # print_dataset(X_train, y_train)
+
+    # AML dataset
     X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     
@@ -65,6 +69,11 @@ if __name__ == "__main__":
     # y_test = y_test.replace(encoder)
     # y_train[y_train == 2] = 0
     # y_test[y_test == 2] = 0
+
+    # Diabetes dataset
+    # X_train, _ = label_encoder(X_train, ['gender', 'smoking_history'])
+    # X_test,  _ = label_encoder(X_test, ['gender', 'smoking_history'])
+
     # ----------------------------------------------------------------------------
 
 
@@ -72,14 +81,13 @@ if __name__ == "__main__":
     # ----------------------------------------------------------------------------
     print()
     print("---------------------- Plotting --------------------------")
-    df_train, df_train_label_decoder = label_encoder(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    df_test, df_test_label_decoder = label_encoder(df_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    plot_correlation_matrix(df_train) 
-    plot_numerical_histograms(df_train)
+    # df_train, df_train_label_decoder = label_encoder(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    # df_test, df_test_label_decoder = label_encoder(df_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
+    # plot_correlation_matrix(df_train) 
+    # plot_numerical_histograms(df_train)
     print("-------------------------- End plotting --------------------------")
     # ----------------------------------------------------------------------------
       
-
 
     # ID3
     # ----------------------------------------------------------------------------
