@@ -117,7 +117,7 @@ class ConditionNodeID3(ConditionNode):
             return self
     
 class DecisionTreeID3(AbstractDecisionTree):
-    def __init__(self, max_depth: int = 10, 
+    def __init__(self, max_depth: int = 20, 
                        num_thresholds_numerical_attr: int = 2,
                        VERBOSE: bool = True):
         super().__init__(max_depth=max_depth)

@@ -61,7 +61,12 @@ class ConditionNode(object):
             return 0
         
         value = round(sum(self.df_y.filter(list(self.subset_indeces))) / len(self.subset_indeces))
+        
         assert len(self.df_y.filter(list(self.subset_indeces))) == len(self.subset_indeces)
+        
+        if value < 0 or value > 1:
+            print("ERROR: value is equal to", value)
+                  
         assert value == 0 or value == 1
         return value
 
