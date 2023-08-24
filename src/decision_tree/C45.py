@@ -40,7 +40,7 @@ class ConditionNodeC45(ConditionNode):
             is_categorical: bool   = self._is_categorical(attr_name)
             gain_ratio, condition   = None, None
 
-            print("----> ", attr_name, is_categorical)
+            # print("----> ", attr_name, is_categorical)
             
             if is_categorical:
                 gain_ratio, condition, condition_value = self._compute_gain_ratio_categorical(attr_series, attr_name)
@@ -53,7 +53,7 @@ class ConditionNodeC45(ConditionNode):
                 max_is_categorical = is_categorical
                 max_condition = condition
             
-        print("SPLIT ON", max_gain_ratio_attr_name, "WITH GAIN RATIO =", max_gain_ratio, "IS CATEGORICAL =", max_is_categorical)
+        # print("SPLIT ON", max_gain_ratio_attr_name, "WITH GAIN RATIO =", max_gain_ratio, "IS CATEGORICAL =", max_is_categorical)
 
         self.condition = max_condition
         self.splitted_attr_names.append(max_gain_ratio_attr_name)
@@ -66,9 +66,6 @@ class ConditionNodeC45(ConditionNode):
     def _compute_gain_ratio_categorical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType, pd.Series]:
         info_attr, split_info = 0, 0
         tot_instances = len(attr_series)
-
-        print("tot_instances", tot_instances)
-        print(attr_series.value_counts())
         
         for value, n_instances in attr_series.value_counts().items():
 
@@ -76,7 +73,7 @@ class ConditionNodeC45(ConditionNode):
             info_attr += (n_instances/tot_instances) * self._shannon_entropy(self.df_y.loc[list(self.subset_indeces)][mask])
             split_info -= (n_instances/tot_instances) * np.log2(n_instances/tot_instances)
         
-        print("info attr", info_attr)
+        # print("info attr", info_attr)
 
         true_type: type = type(attr_series.iloc[0])
 
@@ -87,9 +84,8 @@ class ConditionNodeC45(ConditionNode):
         if info_gain != 0 and split_info != 0:
             gain_ratio = info_gain / split_info
 
-        print("IG: ", info_gain, "SPLIT INFO",  split_info)
-
-        print("gain ratio", gain_ratio)
+        # print("IG: ", info_gain, "SPLIT INFO",  split_info)
+        # print("gain ratio", gain_ratio)
 
         return gain_ratio, \
                lambda row: true_type(row[attr_name]), \
