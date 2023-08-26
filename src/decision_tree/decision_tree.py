@@ -141,7 +141,7 @@ class CustomConditionNode(ConditionNode):
 
 class CustomDecisionTree(AbstractDecisionTree):
     def __init__(self, criterion                     = EntropyType.SHANNON,
-                       type_criterion                = CriterionType.RANDOM,
+                       type_criterion                = CriterionType.BEST,
                        max_depth                     = 10,
                        min_samples_split             = 2,
                        num_thresholds_numerical_attr = 2,

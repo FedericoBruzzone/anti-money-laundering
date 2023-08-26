@@ -47,6 +47,8 @@ class ConditionNodeC45(ConditionNode):
             else:
                 gain_ratio, condition, condition_value = self._compute_gain_ratio_numerical(attr_series, attr_name)
             
+            # print(gain_ratio)
+
             if gain_ratio > max_gain_ratio:
                 max_gain_ratio = gain_ratio
                 max_gain_ratio_attr_name = attr_name
@@ -92,7 +94,7 @@ class ConditionNodeC45(ConditionNode):
                attr_series.unique()
 
     def _compute_gain_ratio_numerical(self, attr_series: pd.Series, attr_name: str) -> tuple[float, LambdaType, pd.Series]:
-        np.seterr(divide='ignore', invalid='ignore')
+        # np.seterr(divide='ignore', invalid='ignore')
         
         len_T = len(attr_series) # |T|
 
@@ -123,6 +125,12 @@ class ConditionNodeC45(ConditionNode):
             else:
                 info_T_2_pos += 1
         
+        def bounded_log2_division(num, den):
+            if num != 0:
+                return np.log2(num / den)
+            else:
+                return np.finfo(np.float64).min
+        
         for i, threshold in enumerate(thresholds):
 
             len_T_1 += 1
@@ -134,19 +142,19 @@ class ConditionNodeC45(ConditionNode):
             else:
                 info_T_1_pos += 1
                 info_T_2_pos -= 1
-            
-            # if info_T_1_pos == 0 or info_T_1_neg == 0 or info_T_2_pos == 0 or info_T_2_neg == 0:
-            #    pass # continue
-
-            eps = 0
 
             # print("1) NUM:", info_T_1_pos, "     DEN:", len_T_1, "   DIV:", info_T_1_pos / len_T_1)
             # print("2) NUM:", info_T_1_neg, "     DEN:", len_T_1, "   DIV:", info_T_1_neg / len_T_1)
             # print("3) NUM:", info_T_2_pos, "     DEN:", len_T_2, "   DIV:", info_T_2_pos / len_T_2)
             # print("4) NUM:", info_T_2_neg, "     DEN:", len_T_2, "   DIV:", info_T_2_neg / len_T_2)
+            
+            T_1_log_pos = bounded_log2_division(info_T_1_pos, len_T_1)
+            T_1_log_neg = bounded_log2_division(info_T_1_neg, len_T_1)
+            T_2_log_pos = bounded_log2_division(info_T_2_pos, len_T_2)
+            T_2_log_neg = bounded_log2_division(info_T_2_neg, len_T_2)
 
-            info_T_1 = - info_T_1_pos * np.log2((info_T_1_pos + eps) / len_T_1) - info_T_1_neg * np.log2((info_T_1_neg + eps) / len_T_1)
-            info_T_2 = - info_T_2_pos * np.log2((info_T_2_pos + eps) / len_T_2) - info_T_2_neg * np.log2((info_T_2_neg + eps) / len_T_2)
+            info_T_1 = - info_T_1_pos * T_1_log_pos - info_T_1_neg * T_1_log_neg
+            info_T_2 = - info_T_2_pos * T_2_log_pos - info_T_2_neg * T_2_log_neg
 
             info_X = (info_T_1 + info_T_2) / len_T
 
@@ -160,8 +168,8 @@ class ConditionNodeC45(ConditionNode):
 
         condition = lambda row: row[attr_name] <= max_info_gain_threshold
 
-        split_info = - ((max_info_gain_len_T_1 / len_T) * np.log2(max_info_gain_len_T_1 / len_T) + \
-                        (max_info_gain_len_T_2 / len_T) * np.log2(max_info_gain_len_T_2 / len_T))
+        split_info = - ((max_info_gain_len_T_1 / len_T) * bounded_log2_division(max_info_gain_len_T_1, len_T) + \
+                        (max_info_gain_len_T_2 / len_T) * bounded_log2_division(max_info_gain_len_T_2, len_T))
 
         gain_ratio = max_info_gain / split_info
 
