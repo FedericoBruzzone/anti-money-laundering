@@ -5,3 +5,6 @@ def printLBlue(str):
 
 def printGreen(str):
     print(Fore.GREEN + str + Style.RESET_ALL)
+
+def printYellow(str):
+    print(Fore.YELLOW + str + Style.RESET_ALL)
