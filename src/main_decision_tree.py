@@ -18,8 +18,8 @@ from src.utils.datasets_handler         import get_X_and_Y
 from src.utils.datasets_handler         import print_dataset
 from src.utils.datasets_handler         import label_encoder
 from src.utils.performance_measures     import calculate_performances
-from src.utils.plot_measures            import (plot_correlation_matrix,  
-                                                plot_numerical_histograms, 
+from src.utils.plot_measures            import (plot_correlation_matrix,
+                                                plot_numerical_histograms,
                                                 plot_roc_curve,
                                                 plot_confusion_matrix)
 from src.utils.dataset_sampling_methods import (oversampling,
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     VIEW = os.getenv('VIEW')
 
     setup_kaggle()
-    print("---------------------- Downloading dataset ----------------------") 
+    print("---------------------- Downloading dataset ----------------------")
     download_dataset("uciml/iris")
     download_dataset("iammustafatz/diabetes-prediction-dataset")
     download_dataset("ealtman2019/ibm-transactions-for-anti-money-laundering-aml")
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # AML dataset
     X_train, _ = label_encoder(X_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     X_test, _ = label_encoder(X_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    
+
     # Iris dataset
     # encoder = {'Iris-setosa': 0, 'Iris-versicolor': 1, 'Iris-virginica': 2}
     # y_train = y_train.replace(encoder)
@@ -83,18 +83,18 @@ if __name__ == "__main__":
     print("---------------------- Plotting --------------------------")
     # df_train, df_train_label_decoder = label_encoder(df_train, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
     # df_test, df_test_label_decoder = label_encoder(df_test, ['Timestamp', 'Account', 'Account.1', 'Receiving Currency', 'Payment Currency', 'Payment Format'])
-    # plot_correlation_matrix(df_train) 
+    # plot_correlation_matrix(df_train)
     # plot_numerical_histograms(df_train)
     print("-------------------------- End plotting --------------------------")
     # ----------------------------------------------------------------------------
-      
+
 
     # ID3
     # ----------------------------------------------------------------------------
     print()
-    print("---------------------- ID3 --------------------------")    
+    print("---------------------- ID3 --------------------------")
     start_time = time.time()
-    decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10, 
+    decision_tree: DecisionTreeID3 = DecisionTreeID3(max_depth=10,
                                                      num_thresholds_numerical_attr=6)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     print()
     print("Performances: ")
     predictions = list(decision_tree.predict_test(X_test))
-    print(f"Fit time: {end_time - start_time} seconds") 
+    print(f"Fit time: {end_time - start_time} seconds")
     calculate_performances(predictions, y_test, "id3", verbose=True)
     print("-------------------------- END ID3 --------------------------")
     # ----------------------------------------------------------------------------
@@ -114,24 +114,24 @@ if __name__ == "__main__":
     print()
     print("-------------------------- CUSTOM --------------------------")
     start_time = time.time()
-    decision_tree = CustomDecisionTree(criterion=EntropyType.SHANNON, 
-                                       type_criterion=CriterionType.BEST, 
-                                       max_depth=10, 
+    decision_tree = CustomDecisionTree(criterion=EntropyType.SHANNON,
+                                       type_criterion=CriterionType.BEST,
+                                       max_depth=10,
                                        min_samples_split=20,
                                        num_thresholds_numerical_attr=6)
     decision_tree.fit(X_train, y_train)
     end_time = time.time()
     decision_tree.create_dot_files(filename="tree-custom", generate_png=True, view=VIEW)
     print()
-    print("Performances: ") 
+    print("Performances: ")
     predictions = list(decision_tree.predict_test(X_test))
     print(f"Fit time: {end_time - start_time} seconds")
     calculate_performances(predictions, y_test, "custom", verbose=True)
     print("-------------------------- END CUSTOM --------------------------")
     # ----------------------------------------------------------------------------
-    
+
     assert(False)
-    
+
     print()
     print("SKLEARN --------------------------")
 
@@ -175,9 +175,9 @@ if __name__ == "__main__":
     performances_F1_score = []
 
     from sklearn import svm
-    
+
     for i in range(n_iter):
-    
+
         clf = DecisionTreeClassifier(splitter='best')
         # clf = svm.SVC()
         # Train Decision Tree Classifer
@@ -185,11 +185,11 @@ if __name__ == "__main__":
 
         # import graphviz
         # import sklearn.tree as tree
-        
-        # graphviz.Source(tree.export_graphviz(clf, out_file="tree.dot", 
+
+        # graphviz.Source(tree.export_graphviz(clf, out_file="tree.dot",
         #                                 class_names=['Yes', 'No'],
         #                                 feature_names=X_train.columns))
-        
+
         #Predict the response for test dataset
         y_pred = clf.predict(X_test)
 

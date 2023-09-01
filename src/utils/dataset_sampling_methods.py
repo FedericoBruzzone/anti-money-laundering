@@ -14,7 +14,7 @@ def oversampling(df_train, VERBOSE):
         while 1 - pos_neg_ratio > OVERSAMPLING_RATIO:
             df_train = pd.concat([df_train, df_train[df_train['Is Laundering']==1]], ignore_index=True)
             pos_neg_ratio = len(df_train[df_train['Is Laundering']==1]) / len(df_train[df_train['Is Laundering']==0])
-        
+
         if VERBOSE:
             print("Length of training set after oversampling:", len(df_train))
     else:
@@ -38,7 +38,7 @@ def undersampling(df_train, VERBOSE):
         print("---------------------- End undersampling ----------------------")
     return df_train
 
-def bootstrap_sampling(df_train, VERBOSE):
+def bootstrap_sampling(df_train, VERBOSE=False):
     if VERBOSE:
         print()
         print("---------------------- Bootstrap sampling ----------------------")
