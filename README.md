@@ -29,7 +29,7 @@ VERBOSE=0|1
 
 **Create and start a new virtual environment**
 
-`source create_venv.sh venv` 
+`source create_venv.sh venv`
 
 **Start current virtual environment**
 
@@ -39,8 +39,45 @@ VERBOSE=0|1
 
 `deactivate`
 
-### Run the `<file>.py` file 
+### Run the `<file>.py` file
 
 `python3 -m src.<file>`
+
+### Using Virtual Environments in Jupyter Notebook and Python
+
+**Add Virtual Environment to Jupyter Notebook**
+
+Install ipykernel which provides the IPython kernel for Jupyter:
+
+```pip install --user ipykernel```
+
+Add your virtual environment to Jupyter by typing:
+
+```python -m ipykernel install --user --name=<name>```
+
+This should print the following:
+
+```Installed kernelspec myenv in /home/user/.local/share/jupyter/kernels/<name>```
+
+**Remove Virtual Environment from Jupyter Notebook**
+
+List the kernel with:
+
+```
+jupyter kernelspec list
+```
+
+This should return something like:
+
+```
+Available kernels:
+  <name>     /home/user/.local/share/jupyter/kernels/<name>
+  python3    /usr/local/share/jupyter/kernels/python3
+```
+
+To uninstall the kernel, type:
+
+```jupyter kernelspec uninstall <name>```
+
 
 
