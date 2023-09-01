@@ -24,7 +24,8 @@ dependencies = [
     "kaggle",
     "jedi",
     "scikit-learn",
-    "graphviz"
+    "graphviz",
+    "colorama"
 ]
 
 [tool.setuptools]
