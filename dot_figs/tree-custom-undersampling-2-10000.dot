@@ -1,0 +1,6 @@
+digraph DecisionTree {
+	rankdir=TD;
+	node [shape=box];
+	2486933058224 [label="Class: 0
+"];
+}
