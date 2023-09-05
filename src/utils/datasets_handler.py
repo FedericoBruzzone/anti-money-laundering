@@ -3,8 +3,11 @@ import numpy as np
 
 pd.set_option('display.max_columns', None)
 
-def get_train_and_test(dataset_name="", verbose = False):
-    df = pd.read_csv(f"datasets/{dataset_name}", sep=",") #, nrows=1000000)
+def get_train_and_test(dataset_name="", verbose = False, nrows = None):
+    if nrows is None:
+        df = pd.read_csv(f"datasets/{dataset_name}", sep=",")
+    else:
+        df = pd.read_csv(f"datasets/{dataset_name}", sep=",", nrows=nrows)
     df_train = df.sample(frac=0.8, random_state=2)
     df_test  = df.drop(df_train.index)
 
