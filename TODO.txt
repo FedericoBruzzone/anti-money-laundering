@@ -1,0 +1,5 @@
+- bootstrap sampling
+- undersampling and oversampling (number of occurency)
+- fit time on average
+- random forest experiments
+- introduction
