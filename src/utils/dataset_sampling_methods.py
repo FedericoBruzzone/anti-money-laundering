@@ -43,7 +43,7 @@ def bootstrap_sampling(df_train, VERBOSE=False):
         print()
         print("---------------------- Bootstrap sampling ----------------------")
         print("Length of training set:", len(df_train))
-    df_train.sample(n=len(df_train), replace=True)
+    df_train = df_train.sample(n=len(df_train), replace=True)
     if VERBOSE:
         print("Length of training set after bootstrap sampling:", len(df_train))
         print("---------------------- End bootstrap sampling ----------------------")
